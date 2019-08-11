@@ -1,4 +1,4 @@
-import { FrameDataType, RowDataType } from "../utils/led-matrix";
+import { FrameDataType } from "../utils/matrix-display";
 
 export type SizeType = { w: number, h: number }
 export type PositionType = { x: number, y: number }

@@ -1,5 +1,5 @@
 import Layer, { LayerOptionsType } from './layer.js';
-import { PixelDataType } from '../utils/led-matrix.js';
+import { PixelDataType } from '../utils/matrix-display.js';
 
 import * as Bezier from 'bezier-easing';
 

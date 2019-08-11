@@ -1,17 +1,14 @@
-import LEDMatrix from './utils/led-matrix';
-import signalHandler from './utils/signal-handler';
-import Compositor from './utils/compositor';
-import Particle, { EASING_INCUBIC } from './layers/particle';
+import Matrix from '../utils/matrix-display.js';
+import Compositor from '../utils/compositor.js';
+import Particle, { EASING_INCUBIC } from '../layers/particle.js';
 
 const randomInt = (min: number, max: number) => min + Math.floor(Math.random() * (max - min + 1));
 
-signalHandler.on(['int', 'term'], () => leds.setAll(0,0,0).render());
-
-const leds = new LEDMatrix({ rows: 12, cols: 12, maxBright: 0.6, frameRate: 30 });
+const matrix = new Matrix({ rows: 12, cols: 12, frameRate: 30 });
 
 
 
-const compositor = new Compositor({ bbox: { minX:0, minY:0, maxX:(leds.cols-1), maxY:(leds.rows-1) }});
+const compositor = new Compositor({ bbox: { minX:0, minY:0, maxX:(matrix.cols-1), maxY:(matrix.rows-1) }});
 
 const addParticle = () => {
 	const w = randomInt(2,3);
@@ -29,9 +26,9 @@ const addParticle = () => {
 	compositor.add(p);
 }
 
-setInterval(addParticle, 1000);
+setInterval(addParticle, 3000);
 
 
-leds.play(timeOffset => {
-	return compositor.frame(timeOffset, )
-});
+matrix.play(compositor.frame.bind(compositor));
+
+export default matrix;

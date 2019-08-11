@@ -1,5 +1,5 @@
 import Layer from '../layers/layer';
-import { PixelDataType, FrameDataType } from './led-matrix'
+import { PixelDataType, FrameDataType } from './matrix-display'
 
 type OptionsType = { bgColor?: PixelDataType, bbox: BoundingBoxType }
 type BoundingBoxType = { minX: number, minY: number, maxX: number, maxY: number };

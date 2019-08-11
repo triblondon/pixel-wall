@@ -1,5 +1,5 @@
 import Layer, { LayerOptionsType } from './layer.js';
-import { PixelDataType, FrameDataType } from '../utils/led-matrix.js';
+import { PixelDataType, FrameDataType } from '../utils/matrix-display.js';
 import * as gm from 'gm';
 
 type OptionsType = LayerOptionsType & {

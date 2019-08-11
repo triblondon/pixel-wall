@@ -66,7 +66,7 @@ class Text extends Layer {
 		this.dirty = true;
 	}
 
-	frame(timeOffset: number) {
+	frame() {
 		if (this.speed) {
 			this.position.x -= this.speed;
 			if (this.position.x < (0 - this.size.w - 1)) {

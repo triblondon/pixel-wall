@@ -1,5 +1,5 @@
 import Layer, { LayerOptionsType } from './layer';
-import { FrameDataType } from '../utils/led-matrix'
+import { FrameDataType } from '../utils/matrix-display'
 
 export default class Slideshow extends Layer {
 
@@ -27,6 +27,7 @@ export default class Slideshow extends Layer {
 			return acc;
 		}, Array(this.size.h).fill(undefined).map(row => Array(this.size.w)));
 		this.frames.push(newFrame);
+		this.numFrames = this.frames.length;
 	}
 
 	frame() {
