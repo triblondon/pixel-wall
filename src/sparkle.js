@@ -16,5 +16,3 @@ leds.play(() => {
   curCol = newCol;
   curRow = newRow;
 });
-
-console.log('Started effect. Press <ctrl>+C to exit.');

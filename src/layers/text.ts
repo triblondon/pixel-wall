@@ -1,9 +1,21 @@
-const Layer = require('./layer');
+import Layer, { PositionType } from './layer';
+import { PixelDataType, FrameDataType, RowDataType,  } from '../utils/led-matrix'
 
-const CHAR_WIDTH = 4;
+type OptionsType = {
+	position: PositionType,
+	text: string,
+	color?: PixelDataType,
+	speed: number,
+	loop?: boolean
+}
+
+type CharMapType = {
+	[index: string]: string
+}
+
 const CHAR_HEIGHT = 5;
 const CHAR_SPACING = 1;
-const CHARS = {
+const CHARS: CharMapType = {
 	'A': ' ####  ##  ######  #',
 	'C': ' ## #  ##   #  # ## ',
 	'D': '### #  ##  ##  #### ',
@@ -19,18 +31,28 @@ const CHARS = {
 
 
 class Text extends Layer {
-	constructor(options) {
-		super(options.x || 0, options.y || 0, 0, CHAR_HEIGHT);
+
+	text: string;
+	color: PixelDataType;
+	speed: number;
+	loop: boolean;
+
+	private textPixels: string[]
+	private dirty: boolean;
+	private origX: number;
+
+	constructor(options: OptionsType) {
+		super(options.position.x, options.position.y, 0, CHAR_HEIGHT);
 		this.text = options.text || '';
 		this.color = options.color || [255,255,255,255];
 		this.speed = options.speed || 0;
 		this.loop = Boolean(options.loop);
-		this.active = true;
 		this.textPixels = null;
 		this.dirty = false;
-		this.origX = this.x;
+		this.origX = this.position.x;
 	}
-	setText(str) {
+
+	setText(str: string) {
 		this.textPixels = [...str].reduce((rows, char) => {
 			if (!(char in CHARS)) char = ' ';
 			const charWidth = CHARS[char].length / CHAR_HEIGHT;
@@ -39,16 +61,17 @@ class Text extends Layer {
 			}
 			return rows;
 		}, Array(CHAR_HEIGHT).fill(''));
-		this.w = this.textPixels[0].length;
+		this.size.w = this.textPixels[0].length;
 		this.text = str;
 		this.dirty = true;
 	}
-	frame() {
+
+	frame(timeOffset: number) {
 		if (this.speed) {
-			this.x -= this.speed;
-			if (this.x < (0 - this.w - 1)) {
+			this.position.x -= this.speed;
+			if (this.position.x < (0 - this.size.w - 1)) {
 				if (this.loop) {
-					this.x = this.origX;
+					this.position.x = this.origX;
 				} else {
 					this.active = false;
 					return;
@@ -57,7 +80,14 @@ class Text extends Layer {
 		}
 		if (this.dirty || this.speed) {
 			this.dirty = false;
-			return [...this.textPixels].map(row => [...row].map(char => (char !== ' ') ? this.color : [0,0,0,255]));
+			const pixelData: FrameDataType = [...this.textPixels]
+				.map<RowDataType>(row => [...row]
+					.map<PixelDataType>(char => (char !== ' ') ? this.color : [0, 0, 0, 0])
+				)
+			;
+			return pixelData;
+		} else {
+			return null;
 		}
 	}
 }

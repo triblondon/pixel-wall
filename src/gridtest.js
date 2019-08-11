@@ -23,5 +23,3 @@ leds.play(() => {
 		return [bright, bright, bright];
 	});
 });
-
-console.log('Started effect. Press <ctrl>+C to exit.');

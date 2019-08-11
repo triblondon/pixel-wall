@@ -31,5 +31,3 @@ leds.play(() => {
 	 });
 });
 
-console.log('Started effect. Press <ctrl>+C to exit.');
-

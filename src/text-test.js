@@ -15,6 +15,4 @@ signalHandler.on(['int', 'term'], () => leds.setAll(0,0,0).render());
 	compositor.add(textLayer);
 
 	leds.play(() => compositor.frame(0,0,12,12));
-
-	console.log('Started effect. Press <ctrl>+C to exit.');
 })();

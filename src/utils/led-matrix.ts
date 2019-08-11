@@ -1,14 +1,16 @@
-// @flow
-/* global process */
-
 const ws281x = require('rpi-ws281x-native');
 
 type OptionsType = {
-	cols: number,
-	rows: number,
-	maxBright: number,
-	frameRate: number
+	cols: number;
+	rows: number;
+	maxBright?: number;
+	frameRate?: number;
 };
+
+export type PixelDataType = [number, number, number, number];
+export type RowDataType = PixelDataType[]
+export type FrameDataType = RowDataType[];
+export type FrameFunctionType = (frameBudget: number) => FrameDataType;
 
 if (process && process.getuid() !== 0) {
 	console.error('Must run as root to use the WS2812 interface');
@@ -21,18 +23,17 @@ const color = (r: number, g: number, b: number): number => ((r & 0xff) << 16) + 
 // Map 2D grid position to 1D index in a snake-wired grid
 const coordsToIndex = (x: number, y: number, cols: number): number => (cols * y) + ((y % 2) ? x : (cols - 1) - x);
 
-const durationMS = (endNS: number, startNS: number): number => Math.round((endNS - startNS) / 100000) / 10;
+// Calculate a duration in milliseconds between two BigInt timestamps
+const durationMS = (endNS: bigint, startNS: bigint): number => Math.round(Number(endNS - startNS) / 100000) / 10;
 
-class LEDMatrix {
+export default class LEDMatrix {
 
 	options: OptionsType
 	pixelData: Uint32Array
-	frameTimer: ?TimeoutID
+	frameTimer: NodeJS.Timeout
 
 	constructor(options: OptionsType) {
 		this.options = {
-			cols: 12,
-			rows: 12,
 			maxBright: 0.4,
 			frameRate: 30,
 			...options
@@ -52,15 +53,16 @@ class LEDMatrix {
 		this.pixelData[coordsToIndex(x, y, this.options.cols)] = color(r, g, b);
 		return this;
 	}
-	setAll(r, g, b) {
+	setAll(r: number, g: number, b: number) {
 		this.pixelData.fill(color(r, g, b));
 		return this;
 	}
-	setEach(callback) {
+	setEach(callback: (x: number, y: number, idx: number) => PixelDataType) {
 		for (let y = 0; y < this.options.rows; y++) {
 			for (let x = 0; x < this.options.cols; x++) {
 				const idx = (y * this.options.cols) + x;
-				this.setPixel(x, y, ...(callback.call(null, x, y, idx) || [0,0,0]));
+				const [r, g, b] = callback.call(null, x, y, idx) || [0,0,0];
+				this.setPixel(x, y, r, g, b);
 			}
 		}
 	}
@@ -68,21 +70,20 @@ class LEDMatrix {
 		ws281x.render(this.pixelData);
 		return this;
 	}
-	play(callback) {
-		const interval = Number.parseInt(1000 / this.options.frameRate);
-		let lastCall = process.hrtime.bigint();
-		let lastDur = 0;
+	play(callback: FrameFunctionType) {
+		const interval = Math.floor(1000 / this.options.frameRate);
+		const timeStart = process.hrtime.bigint();
+		let lastCall: bigint;
+		let lastDur: number = 0;
 		this.frameTimer = setInterval(() => {
 			const timeCall = process.hrtime.bigint();
-			const data = callback.call(null, interval - lastDur);
-			if (typeof data === 'object' && data.constructor === Array && data.length > 0) {
-				//if (data[0].constructor === Array) {
-					this.setEach((x, y, idx) => data[idx]);
-				//} else if ('x' in data[0] && 'y' in data[0] && 'color' in data[0]) {
-				//	this.setAll([0,0,0]);
-				//	data.forEach(p => this.setPixel(p.x, p.y, ...p.color));
-				//}
+
+			const data = callback(durationMS(timeStart, timeCall));
+			if (data) {
+				console.log('render', data);
+				this.setEach((x, y) => data[y][x]);
 			}
+
 			const timeLayout = process.hrtime.bigint();
 			this.render();
 			const timePaint = process.hrtime.bigint();
@@ -100,5 +101,3 @@ class LEDMatrix {
 		clearTimeout(this.frameTimer);
 	}
 }
-
-module.exports = LEDMatrix;
