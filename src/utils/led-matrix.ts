@@ -80,7 +80,6 @@ export default class LEDMatrix {
 
 			const data = callback(durationMS(timeStart, timeCall));
 			if (data) {
-				console.log('render', data);
 				this.setEach((x, y) => data[y][x]);
 			}
 

@@ -19,8 +19,9 @@ export default class Slideshow extends Layer {
 			throw new Error ("Frame has incorrect size");
 		}
 		const newFrame = [...frameBuf].reduce<FrameDataType>((acc, colorVal, idx) => {
-			const row = Math.trunc(idx / this.size.w);
-			const col = idx % this.size.w;
+			const pxIdx = Math.trunc(idx / 3);
+			const row = Math.trunc(pxIdx / this.size.w);
+			const col = pxIdx % this.size.w;
 			if (idx % 3 === 0) acc[row][col] = [0, 0, 0, 1];
 			acc[row][col][idx % 3] = colorVal;
 			return acc;
