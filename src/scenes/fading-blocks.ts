@@ -1,6 +1,6 @@
-import Matrix from '../utils/matrix-display.js';
-import Compositor from '../utils/compositor.js';
-import Particle, { EASING_INCUBIC } from '../layers/particle.js';
+import Matrix from '../utils/matrix-display';
+import Compositor from '../utils/compositor';
+import Particle, { EASING_INCUBIC } from '../layers/particle';
 
 const randomInt = (min: number, max: number) => min + Math.floor(Math.random() * (max - min + 1));
 
@@ -14,7 +14,7 @@ const addParticle = () => {
 	const w = randomInt(2,3);
 	const h = randomInt(2,3);
 	const p = new Particle({
-		position: { x: randomInt(0, 11-w), y: randomInt(0, 11-h) },
+		position: { x: randomInt(0, (matrix.cols-1)-w), y: randomInt(0, (matrix.rows-1)-h) },
 		size: { w, h },
 		color: [randomInt(120,170), 160, 255, 0],
 		transitions: [

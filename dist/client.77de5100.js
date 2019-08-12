@@ -117,23 +117,371 @@ parcelRequire = (function (modules, cache, entry, globalName) {
   }
 
   return newRequire;
-})({"../src/scenes/fading-blocks.ts":[function(require,module,exports) {
+})({"../node_modules/process/browser.js":[function(require,module,exports) {
+
+// shim for using process in browser
+var process = module.exports = {}; // cached from whatever global is present so that test runners that stub it
+// don't break things.  But we need to wrap it in a try catch in case it is
+// wrapped in strict mode code which doesn't define any globals.  It's inside a
+// function because try/catches deoptimize in certain engines.
+
+var cachedSetTimeout;
+var cachedClearTimeout;
+
+function defaultSetTimout() {
+  throw new Error('setTimeout has not been defined');
+}
+
+function defaultClearTimeout() {
+  throw new Error('clearTimeout has not been defined');
+}
+
+(function () {
+  try {
+    if (typeof setTimeout === 'function') {
+      cachedSetTimeout = setTimeout;
+    } else {
+      cachedSetTimeout = defaultSetTimout;
+    }
+  } catch (e) {
+    cachedSetTimeout = defaultSetTimout;
+  }
+
+  try {
+    if (typeof clearTimeout === 'function') {
+      cachedClearTimeout = clearTimeout;
+    } else {
+      cachedClearTimeout = defaultClearTimeout;
+    }
+  } catch (e) {
+    cachedClearTimeout = defaultClearTimeout;
+  }
+})();
+
+function runTimeout(fun) {
+  if (cachedSetTimeout === setTimeout) {
+    //normal enviroments in sane situations
+    return setTimeout(fun, 0);
+  } // if setTimeout wasn't available but was latter defined
+
+
+  if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
+    cachedSetTimeout = setTimeout;
+    return setTimeout(fun, 0);
+  }
+
+  try {
+    // when when somebody has screwed with setTimeout but no I.E. maddness
+    return cachedSetTimeout(fun, 0);
+  } catch (e) {
+    try {
+      // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
+      return cachedSetTimeout.call(null, fun, 0);
+    } catch (e) {
+      // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
+      return cachedSetTimeout.call(this, fun, 0);
+    }
+  }
+}
+
+function runClearTimeout(marker) {
+  if (cachedClearTimeout === clearTimeout) {
+    //normal enviroments in sane situations
+    return clearTimeout(marker);
+  } // if clearTimeout wasn't available but was latter defined
+
+
+  if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
+    cachedClearTimeout = clearTimeout;
+    return clearTimeout(marker);
+  }
+
+  try {
+    // when when somebody has screwed with setTimeout but no I.E. maddness
+    return cachedClearTimeout(marker);
+  } catch (e) {
+    try {
+      // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
+      return cachedClearTimeout.call(null, marker);
+    } catch (e) {
+      // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
+      // Some versions of I.E. have different rules for clearTimeout vs setTimeout
+      return cachedClearTimeout.call(this, marker);
+    }
+  }
+}
+
+var queue = [];
+var draining = false;
+var currentQueue;
+var queueIndex = -1;
+
+function cleanUpNextTick() {
+  if (!draining || !currentQueue) {
+    return;
+  }
+
+  draining = false;
+
+  if (currentQueue.length) {
+    queue = currentQueue.concat(queue);
+  } else {
+    queueIndex = -1;
+  }
+
+  if (queue.length) {
+    drainQueue();
+  }
+}
+
+function drainQueue() {
+  if (draining) {
+    return;
+  }
+
+  var timeout = runTimeout(cleanUpNextTick);
+  draining = true;
+  var len = queue.length;
+
+  while (len) {
+    currentQueue = queue;
+    queue = [];
+
+    while (++queueIndex < len) {
+      if (currentQueue) {
+        currentQueue[queueIndex].run();
+      }
+    }
+
+    queueIndex = -1;
+    len = queue.length;
+  }
+
+  currentQueue = null;
+  draining = false;
+  runClearTimeout(timeout);
+}
+
+process.nextTick = function (fun) {
+  var args = new Array(arguments.length - 1);
+
+  if (arguments.length > 1) {
+    for (var i = 1; i < arguments.length; i++) {
+      args[i - 1] = arguments[i];
+    }
+  }
+
+  queue.push(new Item(fun, args));
+
+  if (queue.length === 1 && !draining) {
+    runTimeout(drainQueue);
+  }
+}; // v8 likes predictible objects
+
+
+function Item(fun, array) {
+  this.fun = fun;
+  this.array = array;
+}
+
+Item.prototype.run = function () {
+  this.fun.apply(null, this.array);
+};
+
+process.title = 'browser';
+process.env = {};
+process.argv = [];
+process.version = ''; // empty string to avoid regexp issues
+
+process.versions = {};
+
+function noop() {}
+
+process.on = noop;
+process.addListener = noop;
+process.once = noop;
+process.off = noop;
+process.removeListener = noop;
+process.removeAllListeners = noop;
+process.emit = noop;
+process.prependListener = noop;
+process.prependOnceListener = noop;
+
+process.listeners = function (name) {
+  return [];
+};
+
+process.binding = function (name) {
+  throw new Error('process.binding is not supported');
+};
+
+process.cwd = function () {
+  return '/';
+};
+
+process.chdir = function (dir) {
+  throw new Error('process.chdir is not supported');
+};
+
+process.umask = function () {
+  return 0;
+};
+},{}],"../src/utils/matrix-display.ts":[function(require,module,exports) {
+var process = require("process");
+"use strict";
+
+function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _nonIterableRest(); }
+
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance"); }
+
+function _iterableToArrayLimit(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
+
+function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
+
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(source, true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(source).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+}); // Calculate a duration in milliseconds between two BigInt timestamps
+
+var now = function now() {
+  return performance ? BigInt(Math.trunc(performance.now() * 1000000)) : process.hrtime.bigint();
+};
+
+var durationMS = function durationMS(endNS, startNS) {
+  return Math.round(Number(endNS - startNS) / 100000) / 10;
+};
+
+var MatrixDisplay =
+/*#__PURE__*/
+function () {
+  function MatrixDisplay(options) {
+    _classCallCheck(this, MatrixDisplay);
+
+    this.options = _objectSpread({
+      frameRate: 30
+    }, options);
+    this.pixelData = Array(options.rows).fill(undefined).map(function (row) {
+      return Array(options.cols);
+    });
+    this.frameTimer = null;
+  }
+
+  _createClass(MatrixDisplay, [{
+    key: "setPixel",
+    value: function setPixel(x, y, r, g, b) {
+      this.pixelData[y][x] = [r, g, b, 1];
+      return this;
+    }
+  }, {
+    key: "setAll",
+    value: function setAll(r, g, b) {
+      this.pixelData = this.pixelData.map(function (row) {
+        return row.fill([r, g, b, 1]);
+      });
+      return this;
+    }
+  }, {
+    key: "setEach",
+    value: function setEach(callback) {
+      for (var y = 0; y < this.options.rows; y++) {
+        for (var x = 0; x < this.options.cols; x++) {
+          var idx = y * this.options.cols + x;
+
+          var _ref = callback.call(null, x, y, idx) || [0, 0, 0],
+              _ref2 = _slicedToArray(_ref, 3),
+              r = _ref2[0],
+              g = _ref2[1],
+              b = _ref2[2];
+
+          this.setPixel(x, y, r, g, b);
+        }
+      }
+    }
+  }, {
+    key: "useRenderer",
+    value: function useRenderer(renderFn) {
+      this.options.renderFn = renderFn;
+    }
+  }, {
+    key: "render",
+    value: function render() {
+      this.options.renderFn && this.options.renderFn(this.pixelData);
+    }
+  }, {
+    key: "play",
+    value: function play(callback) {
+      var _this = this;
+
+      var interval = Math.floor(1000 / this.options.frameRate);
+      var timeStart = now();
+      var lastCall;
+      var lastDur = 0;
+      this.frameTimer = setInterval(function () {
+        var timeCall = now(); // Perform layout calcs
+
+        var data = callback(durationMS(timeStart, timeCall));
+
+        if (data) {
+          _this.pixelData = data;
+        }
+
+        var timeLayout = now(); // Paint the new frame to the renderer
+
+        _this.render();
+
+        var timePaint = now();
+
+        if (durationMS(timeLayout, timeCall) > 15) {
+          console.log('Long layout: ' + durationMS(timeLayout, timeCall));
+        }
+
+        if (durationMS(timePaint, timeLayout) > 15) {
+          console.log('Long paint: ' + durationMS(timePaint, timeLayout));
+        }
+
+        lastCall = timeCall;
+        lastDur = durationMS(timePaint, timeCall);
+      }, interval);
+    }
+  }, {
+    key: "stop",
+    value: function stop() {
+      clearTimeout(this.frameTimer);
+    }
+  }, {
+    key: "cols",
+    get: function get() {
+      return this.options.cols;
+    }
+  }, {
+    key: "rows",
+    get: function get() {
+      return this.options.cols;
+    }
+  }]);
+
+  return MatrixDisplay;
+}();
+
+exports.default = MatrixDisplay;
+},{"process":"../node_modules/process/browser.js"}],"../src/scenes/sparkle.ts":[function(require,module,exports) {
 "use strict";
 
 var __importDefault = this && this.__importDefault || function (mod) {
   return mod && mod.__esModule ? mod : {
     "default": mod
   };
-};
-
-var __importStar = this && this.__importStar || function (mod) {
-  if (mod && mod.__esModule) return mod;
-  var result = {};
-  if (mod != null) for (var k in mod) {
-    if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
-  }
-  result["default"] = mod;
-  return result;
 };
 
 Object.defineProperty(exports, "__esModule", {
@@ -142,64 +490,32 @@ Object.defineProperty(exports, "__esModule", {
 
 var matrix_display_1 = __importDefault(require("../utils/matrix-display"));
 
-var compositor_1 = __importDefault(require("../utils/compositor"));
-
-var particle_1 = __importStar(require("../layers/particle"));
-
-var randomInt = function randomInt(min, max) {
-  return min + Math.floor(Math.random() * (max - min + 1));
-};
-
 var matrix = new matrix_display_1.default({
-  rows: 12,
   cols: 12,
+  rows: 12,
   frameRate: 30
 });
-var compositor = new compositor_1.default({
-  bbox: {
-    minX: 0,
-    minY: 0,
-    maxX: matrix.cols - 1,
-    maxY: matrix.rows - 1
-  }
+matrix.setAll(30, 30, 30);
+var curRow = 0,
+    curCol = 0;
+matrix.play(function () {
+  var newRow = Math.floor(Math.random() * matrix.cols);
+  var newCol = Math.floor(Math.random() * matrix.rows);
+  matrix.setPixel(curCol, curRow, 30, 30, 30).setPixel(newCol, newRow, 255, 255, 255);
+  curCol = newCol;
+  curRow = newRow;
 });
-
-var addParticle = function addParticle() {
-  var w = randomInt(2, 3);
-  var h = randomInt(2, 3);
-  var p = new particle_1.default({
-    position: {
-      x: randomInt(0, 11 - w),
-      y: randomInt(0, 11 - h)
-    },
-    size: {
-      w: w,
-      h: h
-    },
-    color: [randomInt(120, 170), 160, 255, 0],
-    transitions: [{
-      start: 0,
-      duration: 1000,
-      effect: 'fade',
-      target: 1,
-      easing: particle_1.EASING_INCUBIC
-    }, {
-      start: 1500,
-      duration: 2000,
-      effect: 'fade',
-      target: 0,
-      easing: particle_1.EASING_INCUBIC
-    }],
-    loop: false
-  });
-  compositor.add(p);
-};
-
-setInterval(addParticle, 3000);
-matrix.play(compositor.frame.bind(compositor));
 exports.default = matrix;
-},{}],"index.ts":[function(require,module,exports) {
+},{"../utils/matrix-display":"../src/utils/matrix-display.ts"}],"index.ts":[function(require,module,exports) {
 "use strict";
+
+function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _nonIterableRest(); }
+
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance"); }
+
+function _iterableToArrayLimit(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
+
+function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 
 var __importDefault = this && this.__importDefault || function (mod) {
   return mod && mod.__esModule ? mod : {
@@ -211,30 +527,36 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var fading_blocks_1 = __importDefault(require("../src/scenes/fading-blocks"));
+var sparkle_1 = __importDefault(require("../src/scenes/sparkle"));
 
-var canvas = document.querySelector('canvas#output');
-canvas.style.width = fading_blocks_1.default.cols + 'px';
-canvas.style.height = fading_blocks_1.default.rows + 'px';
-var ctx = canvas.getContext('2d');
-var imageData = ctx.getImageData(0, 0, fading_blocks_1.default.cols, fading_blocks_1.default.rows);
+document.addEventListener('DOMContentLoaded', function () {
+  var canvas = document.querySelector('canvas');
+  var ctx = canvas.getContext('2d');
+  var imageData = ctx.createImageData(sparkle_1.default.cols, sparkle_1.default.rows);
 
-function renderToCanvas(data) {
-  var cols = data[0].length;
-  data.forEach(function (row, rowIdx) {
-    row.forEach(function (pixel, colIdx) {
-      var pos = (rowIdx * cols + colIdx) * 4;
-      imageData.data[pos++] = pixel[0];
-      imageData.data[pos++] = pixel[1];
-      imageData.data[pos++] = pixel[2];
-      imageData.data[pos++] = 255;
-      ctx.putImageData(imageData, 0, 0);
+  function renderToCanvas(data) {
+    data.forEach(function (row, rowIdx) {
+      row.forEach(function (pixel, colIdx) {
+        var pos = (rowIdx * sparkle_1.default.cols + colIdx) * 4;
+
+        var _pixel = _slicedToArray(pixel, 4),
+            red = _pixel[0],
+            green = _pixel[1],
+            blue = _pixel[2],
+            alpha = _pixel[3];
+
+        imageData.data[pos] = red;
+        imageData.data[pos + 1] = green;
+        imageData.data[pos + 2] = blue;
+        imageData.data[pos + 3] = 255;
+      });
     });
-  });
-}
+    ctx.putImageData(imageData, 0, 0);
+  }
 
-fading_blocks_1.default.useRenderer(renderToCanvas);
-},{"../src/scenes/fading-blocks":"../src/scenes/fading-blocks.ts"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+  sparkle_1.default.useRenderer(renderToCanvas);
+});
+},{"../src/scenes/sparkle":"../src/scenes/sparkle.ts"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;

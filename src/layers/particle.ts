@@ -1,7 +1,8 @@
-import Layer, { LayerOptionsType } from './layer.js';
-import { PixelDataType } from '../utils/matrix-display.js';
+import Layer, { LayerOptionsType } from './layer';
+import { PixelDataType } from '../utils/matrix-display';
 
 import * as Bezier from 'bezier-easing';
+const easing = require('bezier-easing'); // TODO: parcel vs typescript!
 
 type EasingDefs = {
 	[index: string]: Bezier.EasingFunction
@@ -26,8 +27,8 @@ export const EASING_LINEAR = 'easeLinear';
 export const EASING_INCUBIC = 'easeInCubic';
 
 const EASING_FUNCTIONS: EasingDefs = {
-	'easeLinear': Bezier(0,0,1,1),
-	'easeInCubic': Bezier(.55,.06,.67,.19)
+	'easeLinear': easing(0,0,1,1),
+	'easeInCubic': easing(.55,.06,.67,.19)
 }
 
 export default class Particle extends Layer {

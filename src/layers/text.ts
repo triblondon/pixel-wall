@@ -1,5 +1,5 @@
 import Layer, { PositionType } from './layer';
-import { PixelDataType, FrameDataType, RowDataType,  } from '../utils/led-matrix'
+import { PixelDataType, FrameDataType, RowDataType,  } from '../utils/matrix-display'
 
 type OptionsType = {
 	position: PositionType,

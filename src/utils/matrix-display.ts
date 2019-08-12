@@ -9,9 +9,10 @@ type OptionsType = {
 export type PixelDataType = [number, number, number, number];
 export type RowDataType = PixelDataType[]
 export type FrameDataType = RowDataType[];
-export type FrameFunctionType = (frameBudget: number) => FrameDataType;
+export type FrameFunctionType = (frameBudget: number) => FrameDataType | void;
 
 // Calculate a duration in milliseconds between two BigInt timestamps
+const now = () => performance ? BigInt(Math.trunc(performance.now() * 1000000)) : process.hrtime.bigint();
 const durationMS = (endNS: bigint, startNS: bigint): number => Math.round(Number(endNS - startNS) / 100000) / 10;
 
 export default class MatrixDisplay {
@@ -60,22 +61,22 @@ export default class MatrixDisplay {
 	}
 	play(callback: FrameFunctionType) {
 		const interval = Math.floor(1000 / this.options.frameRate);
-		const timeStart = process.hrtime.bigint();
+		const timeStart = now();
 		let lastCall: bigint;
 		let lastDur: number = 0;
 		this.frameTimer = setInterval(() => {
-			const timeCall = process.hrtime.bigint();
+			const timeCall = now();
 
 			// Perform layout calcs
 			const data = callback(durationMS(timeStart, timeCall));
 			if (data) {
 				this.pixelData = data;
 			}
-			const timeLayout = process.hrtime.bigint();
+			const timeLayout = now();
 
 			// Paint the new frame to the renderer
 			this.render();
-			const timePaint = process.hrtime.bigint();
+			const timePaint = now();
 
 			if (durationMS(timeLayout, timeCall) > 15) {
 				console.log('Long layout: '+durationMS(timeLayout, timeCall));

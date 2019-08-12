@@ -1,7 +1,7 @@
-const LEDMatrix = require('./utils/led-matrix');
-const signalHandler = require('./utils/signal-handler');
-const Compositor = require('./utils/compositor');
-const Text = require('./layers/text');
+const LEDMatrix = require('../utils/matrix-display');
+const signalHandler = require('../utils/signal-handler');
+const Compositor = require('../utils/compositor');
+const Text = require('../layers/text');
 
 const leds = new LEDMatrix({ maxBright: 0.5, frameRate: 15 });
 

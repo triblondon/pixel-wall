@@ -42,7 +42,6 @@ export default class Compositor {
 		return this.layers
 			.reduce((out, layerObj, idx) => {
 				const layerFrameData = layerObj.frame(timeOffset);
-				console.log('from particle', layerFrameData);
 				if (!layerFrameData) return out;
 				layerFrameData.forEach((row, rowOffset) => {
 					row.forEach((pixel, colOffset) => {
@@ -54,7 +53,7 @@ export default class Compositor {
 					});
 				});
 				return out;
-			}, Array(numRows).fill(undefined).map(row => Array(numCols)))
+			}, Array(numRows).fill(undefined).map(row => Array(numCols).fill(this.bgColor)))
 		;
 	}
 }
