@@ -7,7 +7,7 @@ type BoundingBoxType = { minX: number, minY: number, maxX: number, maxY: number 
 const mix = (baseColor: PixelDataType, newColor: PixelDataType) => {
 	let [ baseRed, baseGreen, baseBlue ] = baseColor;
 	let [ newRed, newGreen, newBlue, alpha ] = newColor;
-	if (!alpha) alpha = 1;
+	if (alpha === undefined) alpha = 1;
 	if (alpha > 1) alpha /= 255;
 	return [
 		Math.trunc((newRed * alpha) + (baseRed * (1 - alpha))),
@@ -22,7 +22,7 @@ export default class Compositor {
 	bgColor: PixelDataType
 	bbox: BoundingBoxType
 
-	constructor(options?: OptionsType) {
+	constructor(options: OptionsType) {
 		this.layers = [];
 		this.bgColor = (options && options.bgColor) || [0,0,0,0];
 		this.bbox = options.bbox;
@@ -48,7 +48,7 @@ export default class Compositor {
 						const x = layerObj.position.x + colOffset - this.bbox.minX;
 						const y = layerObj.position.y + rowOffset - this.bbox.minY;
 						if (x >= this.bbox.minX && x <= this.bbox.maxX && y >= this.bbox.minY && y <= this.bbox.maxY) {
-							out[rowOffset][colOffset] = mix(out[rowOffset][colOffset] || this.bgColor, pixel);
+							out[y][x] = mix(out[y][x] || this.bgColor, pixel);
 						}
 					});
 				});

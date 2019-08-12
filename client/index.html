@@ -1,6 +1,29 @@
 <html>
+<head>
+<style>
+body {
+	display: flex;
+	align-content: center;
+	align-items: center;
+	justify-content: center;
+	justify-items: center;
+	background: linear-gradient(#111, #333);
+}
+canvas {
+	transform: scale(50);
+}
+table {
+	border-collapse: collapse;
+}
+td {
+	width: 20px;
+	height: 20px;
+	border: 1px solid #222;
+}
+</style>
+</head>
 <body>
   <script src="./index.ts"></script>
-	<canvas style='transform: scale(20)' width='12' height='12' id="output"></canvas>
+	<div id='output'></div>
 </body>
 </html>

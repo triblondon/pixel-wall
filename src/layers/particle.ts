@@ -11,7 +11,7 @@ type EasingDefs = {
 type TransitionType = {
 	start: number,
 	duration: number,
-	effect: 'fade',
+	effect: 'fade' | 'moveY',
 	from?: number,
 	target: number,
 	easing?: string
@@ -31,6 +31,8 @@ const EASING_FUNCTIONS: EasingDefs = {
 	'easeInCubic': easing(.55,.06,.67,.19)
 }
 
+const nowMS = () => performance ? Math.trunc(performance.now()) : Number(process.hrtime.bigint()) / 1000000;
+
 export default class Particle extends Layer {
 
 	color: PixelDataType;
@@ -38,6 +40,7 @@ export default class Particle extends Layer {
 	loop: boolean;
 
 	private totalDuration: number;
+	private timeCreated: number;
 
 	constructor(options: OptionsType) {
 		super(options.position.x, options.position.y, options.size.w, options.size.h);
@@ -45,9 +48,11 @@ export default class Particle extends Layer {
 		this.transitions = options.transitions || [];
 		this.loop = 'loop' in options ? options.loop : true;
 		this.totalDuration = this.transitions.reduce((acc, t) => Math.max(acc, t.start + t.duration), 0);
+		this.timeCreated = nowMS();
 	}
 
-	frame(timeOffset: number) {
+	frame(frameTime: number) {
+		let timeOffset = frameTime - this.timeCreated;
 		if (timeOffset > this.totalDuration) {
 			if (!this.loop) {
 				this.delete();
@@ -63,7 +68,13 @@ export default class Particle extends Layer {
 				if (!('from' in t)) {
 					t.from = this.color[3];
 				} else {
-					this.color[3] = t.from + ((t.target - t.from) / EASING_FUNCTIONS[t.easing](effectOffset));
+					this.color[3] = Math.trunc(t.from + ((t.target - t.from) * EASING_FUNCTIONS[t.easing](effectOffset)));
+				}
+			} else if (t.effect === 'moveY') {
+				if (!('from' in t)) {
+					t.from = this.position.y;
+				} else {
+					this.position.y = Math.trunc(t.from + ((t.target - t.from) * EASING_FUNCTIONS[t.easing](effectOffset)));
 				}
 			}
 		});

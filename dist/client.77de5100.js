@@ -425,12 +425,10 @@ function () {
 
       var interval = Math.floor(1000 / this.options.frameRate);
       var timeStart = now();
-      var lastCall;
-      var lastDur = 0;
       this.frameTimer = setInterval(function () {
         var timeCall = now(); // Perform layout calcs
 
-        var data = callback(durationMS(timeStart, timeCall));
+        var data = callback(durationMS(timeCall, BigInt(0)));
 
         if (data) {
           _this.pixelData = data;
@@ -449,9 +447,6 @@ function () {
         if (durationMS(timePaint, timeLayout) > 15) {
           console.log('Long paint: ' + durationMS(timePaint, timeLayout));
         }
-
-        lastCall = timeCall;
-        lastDur = durationMS(timePaint, timeCall);
       }, interval);
     }
   }, {
@@ -529,8 +524,11 @@ Object.defineProperty(exports, "__esModule", {
 
 var sparkle_1 = __importDefault(require("../src/scenes/sparkle"));
 
-document.addEventListener('DOMContentLoaded', function () {
-  var canvas = document.querySelector('canvas');
+function canvasMode() {
+  var canvas = document.createElement('canvas');
+  canvas.setAttribute('width', String(sparkle_1.default.cols));
+  canvas.setAttribute('height', String(sparkle_1.default.rows));
+  document.getElementById('output').appendChild(canvas);
   var ctx = canvas.getContext('2d');
   var imageData = ctx.createImageData(sparkle_1.default.cols, sparkle_1.default.rows);
 
@@ -555,7 +553,41 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   sparkle_1.default.useRenderer(renderToCanvas);
-});
+}
+
+function tableMode() {
+  var pixelEls = [];
+  var table = document.createElement('table');
+  var tbody = document.createElement('tbody');
+
+  for (var y = 0; y < sparkle_1.default.rows; y++) {
+    var row = document.createElement('tr');
+
+    for (var x = 0; x < sparkle_1.default.cols; x++) {
+      var cell = document.createElement('td');
+      pixelEls.push(cell);
+      row.appendChild(cell);
+    }
+
+    tbody.appendChild(row);
+  }
+
+  table.appendChild(tbody);
+  document.getElementById('output').appendChild(table);
+
+  function renderToTable(data) {
+    data.forEach(function (row, rowIdx) {
+      row.forEach(function (pixel, colIdx) {
+        var pos = rowIdx * sparkle_1.default.cols + colIdx;
+        pixelEls[pos].style.backgroundColor = "rgb(".concat(pixel[0], ", ").concat(pixel[1], ", ").concat(pixel[2], ")");
+      });
+    });
+  }
+
+  sparkle_1.default.useRenderer(renderToTable);
+}
+
+document.addEventListener('DOMContentLoaded', tableMode);
 },{"../src/scenes/sparkle":"../src/scenes/sparkle.ts"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';

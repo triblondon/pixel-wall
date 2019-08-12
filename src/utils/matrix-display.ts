@@ -62,13 +62,11 @@ export default class MatrixDisplay {
 	play(callback: FrameFunctionType) {
 		const interval = Math.floor(1000 / this.options.frameRate);
 		const timeStart = now();
-		let lastCall: bigint;
-		let lastDur: number = 0;
 		this.frameTimer = setInterval(() => {
 			const timeCall = now();
 
 			// Perform layout calcs
-			const data = callback(durationMS(timeStart, timeCall));
+			const data = callback(durationMS(timeCall, BigInt(0)));
 			if (data) {
 				this.pixelData = data;
 			}
@@ -84,8 +82,6 @@ export default class MatrixDisplay {
 			if (durationMS(timePaint,timeLayout) > 15) {
 				console.log('Long paint: '+durationMS(timePaint,timeLayout));
 			}
-			lastCall = timeCall;
-			lastDur = durationMS(timePaint, timeCall);
 		}, interval);
 	}
 	stop() {

@@ -30,9 +30,8 @@ const CHARS: CharMapType = {
 };
 
 
-class Text extends Layer {
+export default class Text extends Layer {
 
-	text: string;
 	color: PixelDataType;
 	speed: number;
 	loop: boolean;
@@ -43,13 +42,13 @@ class Text extends Layer {
 
 	constructor(options: OptionsType) {
 		super(options.position.x, options.position.y, 0, CHAR_HEIGHT);
-		this.text = options.text || '';
 		this.color = options.color || [255,255,255,255];
 		this.speed = options.speed || 0;
 		this.loop = Boolean(options.loop);
 		this.textPixels = null;
 		this.dirty = false;
 		this.origX = this.position.x;
+		if (options.text) this.setText(options.text);
 	}
 
 	setText(str: string) {
@@ -62,7 +61,6 @@ class Text extends Layer {
 			return rows;
 		}, Array(CHAR_HEIGHT).fill(''));
 		this.size.w = this.textPixels[0].length;
-		this.text = str;
 		this.dirty = true;
 	}
 
@@ -91,5 +89,3 @@ class Text extends Layer {
 		}
 	}
 }
-
-module.exports = Text;
