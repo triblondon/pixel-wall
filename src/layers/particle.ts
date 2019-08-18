@@ -68,7 +68,7 @@ export default class Particle extends Layer {
 				if (!('from' in t)) {
 					t.from = this.color[3];
 				} else {
-					this.color[3] = Math.trunc(t.from + ((t.target - t.from) * EASING_FUNCTIONS[t.easing](effectOffset)));
+					this.color[3] = t.from + ((t.target - t.from) * EASING_FUNCTIONS[t.easing](effectOffset));
 				}
 			} else if (t.effect === 'moveY') {
 				if (!('from' in t)) {

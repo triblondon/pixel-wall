@@ -1,4 +1,4 @@
-import scene from '../src/scenes/text-test';
+import scene from '../src/scenes/point-wave';
 import { FrameDataType } from '../src/utils/matrix-display';
 
 function canvasMode() {

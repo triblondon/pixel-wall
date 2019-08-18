@@ -616,18 +616,120 @@ function () {
 }();
 
 exports.default = Compositor;
-},{"../layers/layer":"../src/layers/layer.ts"}],"../src/layers/text.ts":[function(require,module,exports) {
+},{"../layers/layer":"../src/layers/layer.ts"}],"../node_modules/bezier-easing/src/index.js":[function(require,module,exports) {
+/**
+ * https://github.com/gre/bezier-easing
+ * BezierEasing - use bezier curve for transition easing function
+ * by Gaëtan Renaudeau 2014 - 2015 – MIT License
+ */
+
+// These values are established by empiricism with tests (tradeoff: performance VS precision)
+var NEWTON_ITERATIONS = 4;
+var NEWTON_MIN_SLOPE = 0.001;
+var SUBDIVISION_PRECISION = 0.0000001;
+var SUBDIVISION_MAX_ITERATIONS = 10;
+
+var kSplineTableSize = 11;
+var kSampleStepSize = 1.0 / (kSplineTableSize - 1.0);
+
+var float32ArraySupported = typeof Float32Array === 'function';
+
+function A (aA1, aA2) { return 1.0 - 3.0 * aA2 + 3.0 * aA1; }
+function B (aA1, aA2) { return 3.0 * aA2 - 6.0 * aA1; }
+function C (aA1)      { return 3.0 * aA1; }
+
+// Returns x(t) given t, x1, and x2, or y(t) given t, y1, and y2.
+function calcBezier (aT, aA1, aA2) { return ((A(aA1, aA2) * aT + B(aA1, aA2)) * aT + C(aA1)) * aT; }
+
+// Returns dx/dt given t, x1, and x2, or dy/dt given t, y1, and y2.
+function getSlope (aT, aA1, aA2) { return 3.0 * A(aA1, aA2) * aT * aT + 2.0 * B(aA1, aA2) * aT + C(aA1); }
+
+function binarySubdivide (aX, aA, aB, mX1, mX2) {
+  var currentX, currentT, i = 0;
+  do {
+    currentT = aA + (aB - aA) / 2.0;
+    currentX = calcBezier(currentT, mX1, mX2) - aX;
+    if (currentX > 0.0) {
+      aB = currentT;
+    } else {
+      aA = currentT;
+    }
+  } while (Math.abs(currentX) > SUBDIVISION_PRECISION && ++i < SUBDIVISION_MAX_ITERATIONS);
+  return currentT;
+}
+
+function newtonRaphsonIterate (aX, aGuessT, mX1, mX2) {
+ for (var i = 0; i < NEWTON_ITERATIONS; ++i) {
+   var currentSlope = getSlope(aGuessT, mX1, mX2);
+   if (currentSlope === 0.0) {
+     return aGuessT;
+   }
+   var currentX = calcBezier(aGuessT, mX1, mX2) - aX;
+   aGuessT -= currentX / currentSlope;
+ }
+ return aGuessT;
+}
+
+function LinearEasing (x) {
+  return x;
+}
+
+module.exports = function bezier (mX1, mY1, mX2, mY2) {
+  if (!(0 <= mX1 && mX1 <= 1 && 0 <= mX2 && mX2 <= 1)) {
+    throw new Error('bezier x values must be in [0, 1] range');
+  }
+
+  if (mX1 === mY1 && mX2 === mY2) {
+    return LinearEasing;
+  }
+
+  // Precompute samples table
+  var sampleValues = float32ArraySupported ? new Float32Array(kSplineTableSize) : new Array(kSplineTableSize);
+  for (var i = 0; i < kSplineTableSize; ++i) {
+    sampleValues[i] = calcBezier(i * kSampleStepSize, mX1, mX2);
+  }
+
+  function getTForX (aX) {
+    var intervalStart = 0.0;
+    var currentSample = 1;
+    var lastSample = kSplineTableSize - 1;
+
+    for (; currentSample !== lastSample && sampleValues[currentSample] <= aX; ++currentSample) {
+      intervalStart += kSampleStepSize;
+    }
+    --currentSample;
+
+    // Interpolate to provide an initial guess for t
+    var dist = (aX - sampleValues[currentSample]) / (sampleValues[currentSample + 1] - sampleValues[currentSample]);
+    var guessForT = intervalStart + dist * kSampleStepSize;
+
+    var initialSlope = getSlope(guessForT, mX1, mX2);
+    if (initialSlope >= NEWTON_MIN_SLOPE) {
+      return newtonRaphsonIterate(aX, guessForT, mX1, mX2);
+    } else if (initialSlope === 0.0) {
+      return guessForT;
+    } else {
+      return binarySubdivide(aX, intervalStart, intervalStart + kSampleStepSize, mX1, mX2);
+    }
+  }
+
+  return function BezierEasing (x) {
+    // Because JavaScript number are imprecise, we should guarantee the extremes are right.
+    if (x === 0) {
+      return 0;
+    }
+    if (x === 1) {
+      return 1;
+    }
+    return calcBezier(getTForX(x), mY1, mY2);
+  };
+};
+
+},{}],"../src/layers/particle.ts":[function(require,module,exports) {
+var process = require("process");
 "use strict";
 
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
-
-function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
-
-function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance"); }
-
-function _iterableToArray(iter) { if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter); }
-
-function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -657,121 +759,104 @@ Object.defineProperty(exports, "__esModule", {
 
 var layer_1 = __importDefault(require("./layer"));
 
-var CHAR_HEIGHT = 5;
-var CHAR_SPACING = 1;
-var CHARS = {
-  'A': ' ####  ##  ######  #',
-  'B': '### #  #### #  #### ',
-  'C': ' ## #  ##   #  # ## ',
-  'D': '### #  ##  ##  #### ',
-  'E': '#####   ### #   ####',
-  'F': '#####   ### #   #   ',
-  'G': ' ####   # ###  # ###',
-  'H': '#  ##  ######  ##  #',
-  'I': '### #  #  # ###',
-  'J': ' ###   #   ##  # ## ',
-  'K': '#  ## # ##  # # #  #',
-  'L': '#   #   #   #   ####',
-  'M': '#   ### ### # ##   ##   #',
-  'N': '#  ### ## ###  ##  #',
-  'O': ' ## #  ##  ##  # ## ',
-  'P': '#####  #### #   #   ',
-  'Q': ' ##  #  # #  # #  #  ####',
-  'R': '### #  ##  #### #  #',
-  'S': ' ####    ##    #### ',
-  'T': '#####  #    #    #    #  ',
-  'U': '#  ##  ##  ##  # ## ',
-  'V': '#  ##  ##  # # #  # ',
-  'W': '# # ## # ## # ## # # # # ',
-  'X': '#  ### # ## #  ##  #',
-  'Y': '#  ##  # ###   # ## ',
-  'Z': '####   # ## #   ####',
-  '!': '### #',
-  ' ': '                    '
+var easing = require('bezier-easing'); // TODO: parcel vs typescript!
+
+
+exports.EASING_LINEAR = 'easeLinear';
+exports.EASING_INCUBIC = 'easeInCubic';
+var EASING_FUNCTIONS = {
+  'easeLinear': easing(0, 0, 1, 1),
+  'easeInCubic': easing(.55, .06, .67, .19)
 };
 
-var Text =
+var nowMS = function nowMS() {
+  return typeof performance !== 'undefined' ? Math.trunc(performance.now()) : Number(process.hrtime.bigint()) / 1000000;
+};
+
+var Particle =
 /*#__PURE__*/
 function (_layer_1$default) {
-  _inherits(Text, _layer_1$default);
+  _inherits(Particle, _layer_1$default);
 
-  function Text(options) {
+  function Particle(options) {
     var _this;
 
-    _classCallCheck(this, Text);
+    _classCallCheck(this, Particle);
 
-    _this = _possibleConstructorReturn(this, _getPrototypeOf(Text).call(this, options.position.x, options.position.y, 0, CHAR_HEIGHT));
-    _this.color = options.color || [255, 255, 255, 255];
-    _this.speed = options.speed || 0;
-    _this.loop = Boolean(options.loop);
-    _this.textPixels = null;
-    _this.dirty = false;
-    _this.origX = _this.position.x;
-    if (options.text) _this.setText(options.text);
+    _this = _possibleConstructorReturn(this, _getPrototypeOf(Particle).call(this, options.position.x, options.position.y, options.size.w, options.size.h));
+    _this.color = options.color || [255, 255, 255, 1];
+    _this.transitions = options.transitions || [];
+    _this.loop = 'loop' in options ? options.loop : true;
+    _this.totalDuration = _this.transitions.reduce(function (acc, t) {
+      return Math.max(acc, t.start + t.duration);
+    }, 0);
+    _this.timeCreated = nowMS();
     return _this;
   }
 
-  _createClass(Text, [{
-    key: "setText",
-    value: function setText(str) {
-      this.textPixels = _toConsumableArray(str.toUpperCase()).reduce(function (rows, char) {
-        if (!(char in CHARS)) char = ' ';
-        var charWidth = CHARS[char].length / CHAR_HEIGHT;
-
-        for (var y = 0; y < rows.length; y++) {
-          rows[y] += CHARS[char].substring(y * charWidth, (y + 1) * charWidth) + ' '.repeat(CHAR_SPACING);
-        }
-
-        return rows;
-      }, Array(CHAR_HEIGHT).fill(''));
-      this.size.w = this.textPixels[0].length;
-      this.dirty = true;
-    }
-  }, {
+  _createClass(Particle, [{
     key: "frame",
-    value: function frame() {
+    value: function frame(frameTime) {
       var _this2 = this;
 
-      if (this.speed) {
-        this.position.x -= this.speed;
+      var timeOffset = frameTime - this.timeCreated;
 
-        if (this.position.x < 0 - this.size.w - 1) {
-          if (this.loop) {
-            this.position.x = this.origX;
-          } else {
-            this.active = false;
-            return;
-          }
+      if (timeOffset > this.totalDuration) {
+        if (!this.loop) {
+          this.delete();
+          return null;
+        } else {
+          timeOffset = timeOffset % this.totalDuration;
         }
       }
 
-      if (this.dirty || this.speed) {
-        this.dirty = false;
+      this.transitions.forEach(function (t) {
+        if (t.start > timeOffset || t.start + t.duration < timeOffset) return true;
+        var effectOffset = (timeOffset - t.start) / t.duration;
 
-        var pixelData = _toConsumableArray(this.textPixels).map(function (row) {
-          return _toConsumableArray(row).map(function (char) {
-            return char !== ' ' ? _this2.color : [0, 0, 0, 0];
-          });
+        if (t.effect === 'fade') {
+          if (!('from' in t)) {
+            t.from = _this2.color[3];
+          } else {
+            _this2.color[3] = t.from + (t.target - t.from) * EASING_FUNCTIONS[t.easing](effectOffset);
+          }
+        } else if (t.effect === 'moveY') {
+          if (!('from' in t)) {
+            t.from = _this2.position.y;
+          } else {
+            _this2.position.y = Math.trunc(t.from + (t.target - t.from) * EASING_FUNCTIONS[t.easing](effectOffset));
+          }
+        }
+      });
+      return Array(this.size.h).fill(undefined).map(function () {
+        return Array(_this2.size.w).fill(undefined).map(function () {
+          return _this2.color;
         });
-
-        return pixelData;
-      } else {
-        return null;
-      }
+      });
     }
   }]);
 
-  return Text;
+  return Particle;
 }(layer_1.default);
 
-exports.default = Text;
-},{"./layer":"../src/layers/layer.ts"}],"../src/scenes/text-test.ts":[function(require,module,exports) {
+exports.default = Particle;
+},{"./layer":"../src/layers/layer.ts","bezier-easing":"../node_modules/bezier-easing/src/index.js","process":"../node_modules/process/browser.js"}],"../src/scenes/point-wave.ts":[function(require,module,exports) {
 "use strict";
 
 var __importDefault = this && this.__importDefault || function (mod) {
   return mod && mod.__esModule ? mod : {
     "default": mod
   };
+};
+
+var __importStar = this && this.__importStar || function (mod) {
+  if (mod && mod.__esModule) return mod;
+  var result = {};
+  if (mod != null) for (var k in mod) {
+    if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
+  }
+  result["default"] = mod;
+  return result;
 };
 
 Object.defineProperty(exports, "__esModule", {
@@ -782,7 +867,17 @@ var matrix_display_1 = __importDefault(require("../utils/matrix-display"));
 
 var compositor_1 = __importDefault(require("../utils/compositor"));
 
-var text_1 = __importDefault(require("../layers/text"));
+var particle_1 = __importStar(require("../layers/particle"));
+
+var NUM_PARTICLES = 7;
+var WAVE_DURATION = 1000;
+var BETWEEN_WAVES = 5000;
+var FADE_IN_DURATION = 500;
+var FADE_OUT_DURATION = 1000;
+
+var randomInt = function randomInt(min, max) {
+  return min + Math.floor(Math.random() * (max - min + 1));
+};
 
 var matrix = new matrix_display_1.default({
   rows: 12,
@@ -797,19 +892,50 @@ var compositor = new compositor_1.default({
     maxY: matrix.rows - 1
   }
 });
-compositor.add(new text_1.default({
-  position: {
-    x: 12,
-    y: 3
-  },
-  color: [152, 210, 255, 1],
-  speed: 1,
-  loop: true,
-  text: 'BONSOIR SARAH!'
-}));
+
+var doWave = function doWave() {
+  var color = [randomInt(50, 255), randomInt(50, 255), randomInt(50, 255), 0];
+  var prevPoints = [];
+
+  for (var i = 0; i < NUM_PARTICLES; i++) {
+    var x = randomInt(0, 11);
+    var y = randomInt(0, 11);
+    var fadeOffset = Math.trunc(x / 11 * WAVE_DURATION);
+    var p = new particle_1.default({
+      position: {
+        x: x,
+        y: y
+      },
+      size: {
+        w: 1,
+        h: 1
+      },
+      color: [].concat(color),
+      loop: false,
+      transitions: [{
+        start: fadeOffset,
+        duration: FADE_IN_DURATION,
+        effect: 'fade',
+        target: 0.7,
+        easing: particle_1.EASING_INCUBIC
+      }, {
+        start: fadeOffset + FADE_IN_DURATION,
+        duration: FADE_OUT_DURATION,
+        effect: 'fade',
+        target: 0,
+        easing: particle_1.EASING_INCUBIC
+      }]
+    });
+    compositor.add(p);
+  }
+
+  setTimeout(doWave, BETWEEN_WAVES);
+};
+
+doWave();
 matrix.play(compositor.frame.bind(compositor));
 exports.default = matrix;
-},{"../utils/matrix-display":"../src/utils/matrix-display.ts","../utils/compositor":"../src/utils/compositor.ts","../layers/text":"../src/layers/text.ts"}],"index.ts":[function(require,module,exports) {
+},{"../utils/matrix-display":"../src/utils/matrix-display.ts","../utils/compositor":"../src/utils/compositor.ts","../layers/particle":"../src/layers/particle.ts"}],"index.ts":[function(require,module,exports) {
 "use strict";
 
 function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _nonIterableRest(); }
@@ -830,20 +956,20 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var text_test_1 = __importDefault(require("../src/scenes/text-test"));
+var point_wave_1 = __importDefault(require("../src/scenes/point-wave"));
 
 function canvasMode() {
   var canvas = document.createElement('canvas');
-  canvas.setAttribute('width', String(text_test_1.default.cols));
-  canvas.setAttribute('height', String(text_test_1.default.rows));
+  canvas.setAttribute('width', String(point_wave_1.default.cols));
+  canvas.setAttribute('height', String(point_wave_1.default.rows));
   document.getElementById('output').appendChild(canvas);
   var ctx = canvas.getContext('2d');
-  var imageData = ctx.createImageData(text_test_1.default.cols, text_test_1.default.rows);
+  var imageData = ctx.createImageData(point_wave_1.default.cols, point_wave_1.default.rows);
 
   function renderToCanvas(data) {
     data.forEach(function (row, rowIdx) {
       row.forEach(function (pixel, colIdx) {
-        var pos = (rowIdx * text_test_1.default.cols + colIdx) * 4;
+        var pos = (rowIdx * point_wave_1.default.cols + colIdx) * 4;
 
         var _pixel = _slicedToArray(pixel, 4),
             red = _pixel[0],
@@ -860,7 +986,7 @@ function canvasMode() {
     ctx.putImageData(imageData, 0, 0);
   }
 
-  text_test_1.default.useRenderer(renderToCanvas);
+  point_wave_1.default.useRenderer(renderToCanvas);
 }
 
 function tableMode() {
@@ -868,10 +994,10 @@ function tableMode() {
   var table = document.createElement('table');
   var tbody = document.createElement('tbody');
 
-  for (var y = 0; y < text_test_1.default.rows; y++) {
+  for (var y = 0; y < point_wave_1.default.rows; y++) {
     var row = document.createElement('tr');
 
-    for (var x = 0; x < text_test_1.default.cols; x++) {
+    for (var x = 0; x < point_wave_1.default.cols; x++) {
       var cell = document.createElement('td');
       pixelEls.push(cell);
       row.appendChild(cell);
@@ -886,17 +1012,17 @@ function tableMode() {
   function renderToTable(data) {
     data.forEach(function (row, rowIdx) {
       row.forEach(function (pixel, colIdx) {
-        var pos = rowIdx * text_test_1.default.cols + colIdx;
+        var pos = rowIdx * point_wave_1.default.cols + colIdx;
         pixelEls[pos].style.backgroundColor = "rgb(".concat(pixel[0], ", ").concat(pixel[1], ", ").concat(pixel[2], ")");
       });
     });
   }
 
-  text_test_1.default.useRenderer(renderToTable);
+  point_wave_1.default.useRenderer(renderToTable);
 }
 
 document.addEventListener('DOMContentLoaded', tableMode);
-},{"../src/scenes/text-test":"../src/scenes/text-test.ts"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"../src/scenes/point-wave":"../src/scenes/point-wave.ts"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -924,7 +1050,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "52430" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "58346" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
