@@ -1,4 +1,4 @@
-import scene from './scenes/fire';
+import scene from './scenes/sparkle';
 import { init, render } from './utils/ws281x-renderer';
 import signalHandler from './utils/signal-handler';
 

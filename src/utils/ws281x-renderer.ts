@@ -17,6 +17,7 @@ let pixelData: Uint32Array;
 export const init = (rows:number, cols:number, brightness: number): void => {
 	ws281x.init(rows * cols);
 	ws281x.setBrightness(Math.round(brightness * 255));
+	pixelData = new Uint32Array(rows * cols);
 }
 
 export const render = (frameData: FrameDataType) => {
