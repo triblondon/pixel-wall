@@ -5,12 +5,14 @@ const argv = require('argv');
 
 const args = argv.option({ name: 'scene', short: 's', type: 'string', description: 'Name of scene to render' }).run();
 
-const scene = require('./scenes/' + args.options.scene);
+(async () => {
+	const scene = await import('./scenes/' + args.options.scene);
 
-console.log(scene);
+	console.log(scene);
 
-signalHandler.on(['int', 'term'], () => scene.setAll(0,0,0).render());
+	signalHandler.on(['int', 'term'], () => scene.setAll(0,0,0).render());
 
-init(scene.rows, scene.cols, 0.5);
+	init(scene.rows, scene.cols, 0.5);
 
-scene.useRenderer(render)
+	scene.useRenderer(render)
+})()
