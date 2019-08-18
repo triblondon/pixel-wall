@@ -2,7 +2,7 @@ import Matrix, { PixelDataType } from '../utils/matrix-display';
 import Compositor from '../utils/compositor';
 import Particle, { EASING_LINEAR, EASING_INCUBIC } from '../layers/particle';
 
-const NUM_PARTICLES = 7;
+const NUM_PARTICLES = 15;
 const WAVE_DURATION = 1000;
 const BETWEEN_WAVES = 5000;
 const FADE_IN_DURATION = 500;

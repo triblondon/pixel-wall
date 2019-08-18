@@ -869,7 +869,7 @@ var compositor_1 = __importDefault(require("../utils/compositor"));
 
 var particle_1 = __importStar(require("../layers/particle"));
 
-var NUM_PARTICLES = 7;
+var NUM_PARTICLES = 15;
 var WAVE_DURATION = 1000;
 var BETWEEN_WAVES = 5000;
 var FADE_IN_DURATION = 500;
