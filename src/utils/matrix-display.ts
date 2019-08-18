@@ -12,7 +12,7 @@ export type FrameDataType = RowDataType[];
 export type FrameFunctionType = (frameBudget: number) => FrameDataType | void;
 
 // Calculate a duration in milliseconds between two BigInt timestamps
-const now = () => performance ? BigInt(Math.trunc(performance.now() * 1000000)) : process.hrtime.bigint();
+const now = () => (globalThis.performance !== undefined) ? BigInt(Math.trunc(performance.now() * 1000000)) : process.hrtime.bigint();
 const durationMS = (endNS: bigint, startNS: bigint): number => Math.round(Number(endNS - startNS) / 100000) / 10;
 
 export default class MatrixDisplay {

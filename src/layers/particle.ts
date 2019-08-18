@@ -31,7 +31,7 @@ const EASING_FUNCTIONS: EasingDefs = {
 	'easeInCubic': easing(.55,.06,.67,.19)
 }
 
-const nowMS = () => performance ? Math.trunc(performance.now()) : Number(process.hrtime.bigint()) / 1000000;
+const nowMS = () => (globalThis.performance !== undefined) ? Math.trunc(performance.now()) : Number(process.hrtime.bigint()) / 1000000;
 
 export default class Particle extends Layer {
 
