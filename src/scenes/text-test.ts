@@ -7,7 +7,7 @@ const compositor = new Compositor({ bbox: { minX:0, minY:0, maxX:(matrix.cols-1)
 
 compositor.add(new Text({
 	position: { x: 12, y: 3 },
-	color: [0, 50, 255, 1],
+	color: [152, 210, 255, 1],
 	speed: 1,
 	loop: true,
 	text: 'BONSOIR SARAH!'
