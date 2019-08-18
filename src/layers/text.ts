@@ -17,14 +17,31 @@ const CHAR_HEIGHT = 5;
 const CHAR_SPACING = 1;
 const CHARS: CharMapType = {
 	'A': ' ####  ##  ######  #',
+	'B': '### #  #### #  #### ',
 	'C': ' ## #  ##   #  # ## ',
 	'D': '### #  ##  ##  #### ',
 	'E': '#####   ### #   ####',
+	'F': '#####   ### #   #   ',
+	'G': ' ####   # ###  # ###',
 	'H': '#  ##  ######  ##  #',
 	'I': '### #  #  # ###',
+	'J': ' ###   #   ##  # ## ',
+	'K': '#  ## # ##  # # #  #',
+	'L': '#   #   #   #   ####',
+	'M': '#   ### ### # ##   ##   #',
 	'N': '#  ### ## ###  ##  #',
 	'O': ' ## #  ##  ##  # ## ',
+	'P': '#####  #### #   #   ',
+	'Q': ' ##  #  # #  # #  #  ####',
 	'R': '### #  ##  #### #  #',
+	'S': ' ####    ##    #### ',
+	'T': '#####  #    #    #    #  ',
+	'U': '#  ##  ##  ##  # ## ',
+	'V': '#  ##  ##  # # #  # ',
+	'W': '# # ## # ## # ## # # # # ',
+	'X': '#  ### # ## #  ##  #',
+	'Y': '#  ##  # ###   # ## ',
+	'Z': '####   # ## #   ####',
 	'!': '### #',
 	' ': '                    ',
 };
@@ -52,7 +69,7 @@ export default class Text extends Layer {
 	}
 
 	setText(str: string) {
-		this.textPixels = [...str].reduce((rows, char) => {
+		this.textPixels = [...(str.toUpperCase()].reduce((rows, char) => {
 			if (!(char in CHARS)) char = ' ';
 			const charWidth = CHARS[char].length / CHAR_HEIGHT;
 			for (let y=0; y<rows.length; y++) {

@@ -10,7 +10,7 @@ compositor.add(new Text({
 	color: [0, 50, 255, 1],
 	speed: 1,
 	loop: true,
-	text: 'HI DORA!'
+	text: 'BONSOIR SARAH!'
 }));
 
 matrix.play(compositor.frame.bind(compositor));

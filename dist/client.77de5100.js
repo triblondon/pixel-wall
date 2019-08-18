@@ -470,393 +470,13 @@ function () {
 }();
 
 exports.default = MatrixDisplay;
-},{"process":"../node_modules/process/browser.js"}],"../src/layers/layer.ts":[function(require,module,exports) {
-"use strict";
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
-function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var Layer =
-/*#__PURE__*/
-function () {
-  function Layer(x, y, w, h) {
-    _classCallCheck(this, Layer);
-
-    this.active = true;
-    this.position = {
-      x: x,
-      y: y
-    };
-    this.size = {
-      w: w,
-      h: h
-    };
-  }
-
-  _createClass(Layer, [{
-    key: "delete",
-    value: function _delete() {
-      this.active = false;
-    }
-  }, {
-    key: "isActive",
-    value: function isActive() {
-      return Boolean(this.active);
-    }
-  }]);
-
-  return Layer;
-}();
-
-exports.default = Layer;
-},{}],"../src/utils/compositor.ts":[function(require,module,exports) {
-"use strict";
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
-function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
-
-function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _nonIterableRest(); }
-
-function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance"); }
-
-function _iterableToArrayLimit(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
-
-function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
-
-var __importDefault = this && this.__importDefault || function (mod) {
-  return mod && mod.__esModule ? mod : {
-    "default": mod
-  };
-};
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var layer_1 = __importDefault(require("../layers/layer"));
-
-var mix = function mix(baseColor, newColor) {
-  var _baseColor = _slicedToArray(baseColor, 3),
-      baseRed = _baseColor[0],
-      baseGreen = _baseColor[1],
-      baseBlue = _baseColor[2];
-
-  var _newColor = _slicedToArray(newColor, 4),
-      newRed = _newColor[0],
-      newGreen = _newColor[1],
-      newBlue = _newColor[2],
-      alpha = _newColor[3];
-
-  if (alpha === undefined) alpha = 1;
-  if (alpha > 1) alpha /= 255;
-  return [Math.trunc(newRed * alpha + baseRed * (1 - alpha)), Math.trunc(newGreen * alpha + baseGreen * (1 - alpha)), Math.trunc(newBlue * alpha + baseBlue * (1 - alpha))];
-};
-
-var Compositor =
-/*#__PURE__*/
-function () {
-  function Compositor(options) {
-    _classCallCheck(this, Compositor);
-
-    this.layers = [];
-    this.bgColor = options && options.bgColor || [0, 0, 0, 0];
-    this.bbox = options.bbox;
-  }
-
-  _createClass(Compositor, [{
-    key: "add",
-    value: function add(layerObj) {
-      if (!(layerObj instanceof layer_1.default)) {
-        throw new Error(layerObj + ' is not a Layer');
-      }
-
-      this.layers.push(layerObj);
-    }
-  }, {
-    key: "frame",
-    value: function frame(timeOffset) {
-      var _this = this;
-
-      var numCols = this.bbox.maxX - this.bbox.minX + 1;
-      var numRows = this.bbox.maxY - this.bbox.minY + 1;
-      this.layers = this.layers.filter(function (l) {
-        return l.isActive();
-      });
-      return this.layers.reduce(function (out, layerObj, idx) {
-        var layerFrameData = layerObj.frame(timeOffset);
-        if (!layerFrameData) return out;
-        layerFrameData.forEach(function (row, rowOffset) {
-          row.forEach(function (pixel, colOffset) {
-            var x = layerObj.position.x + colOffset - _this.bbox.minX;
-            var y = layerObj.position.y + rowOffset - _this.bbox.minY;
-
-            if (x >= _this.bbox.minX && x <= _this.bbox.maxX && y >= _this.bbox.minY && y <= _this.bbox.maxY) {
-              out[y][x] = mix(out[y][x] || _this.bgColor, pixel);
-            }
-          });
-        });
-        return out;
-      }, Array(numRows).fill(undefined).map(function (row) {
-        return Array(numCols).fill(_this.bgColor);
-      }));
-    }
-  }]);
-
-  return Compositor;
-}();
-
-exports.default = Compositor;
-},{"../layers/layer":"../src/layers/layer.ts"}],"../node_modules/bezier-easing/src/index.js":[function(require,module,exports) {
-/**
- * https://github.com/gre/bezier-easing
- * BezierEasing - use bezier curve for transition easing function
- * by Gaëtan Renaudeau 2014 - 2015 – MIT License
- */
-
-// These values are established by empiricism with tests (tradeoff: performance VS precision)
-var NEWTON_ITERATIONS = 4;
-var NEWTON_MIN_SLOPE = 0.001;
-var SUBDIVISION_PRECISION = 0.0000001;
-var SUBDIVISION_MAX_ITERATIONS = 10;
-
-var kSplineTableSize = 11;
-var kSampleStepSize = 1.0 / (kSplineTableSize - 1.0);
-
-var float32ArraySupported = typeof Float32Array === 'function';
-
-function A (aA1, aA2) { return 1.0 - 3.0 * aA2 + 3.0 * aA1; }
-function B (aA1, aA2) { return 3.0 * aA2 - 6.0 * aA1; }
-function C (aA1)      { return 3.0 * aA1; }
-
-// Returns x(t) given t, x1, and x2, or y(t) given t, y1, and y2.
-function calcBezier (aT, aA1, aA2) { return ((A(aA1, aA2) * aT + B(aA1, aA2)) * aT + C(aA1)) * aT; }
-
-// Returns dx/dt given t, x1, and x2, or dy/dt given t, y1, and y2.
-function getSlope (aT, aA1, aA2) { return 3.0 * A(aA1, aA2) * aT * aT + 2.0 * B(aA1, aA2) * aT + C(aA1); }
-
-function binarySubdivide (aX, aA, aB, mX1, mX2) {
-  var currentX, currentT, i = 0;
-  do {
-    currentT = aA + (aB - aA) / 2.0;
-    currentX = calcBezier(currentT, mX1, mX2) - aX;
-    if (currentX > 0.0) {
-      aB = currentT;
-    } else {
-      aA = currentT;
-    }
-  } while (Math.abs(currentX) > SUBDIVISION_PRECISION && ++i < SUBDIVISION_MAX_ITERATIONS);
-  return currentT;
-}
-
-function newtonRaphsonIterate (aX, aGuessT, mX1, mX2) {
- for (var i = 0; i < NEWTON_ITERATIONS; ++i) {
-   var currentSlope = getSlope(aGuessT, mX1, mX2);
-   if (currentSlope === 0.0) {
-     return aGuessT;
-   }
-   var currentX = calcBezier(aGuessT, mX1, mX2) - aX;
-   aGuessT -= currentX / currentSlope;
- }
- return aGuessT;
-}
-
-function LinearEasing (x) {
-  return x;
-}
-
-module.exports = function bezier (mX1, mY1, mX2, mY2) {
-  if (!(0 <= mX1 && mX1 <= 1 && 0 <= mX2 && mX2 <= 1)) {
-    throw new Error('bezier x values must be in [0, 1] range');
-  }
-
-  if (mX1 === mY1 && mX2 === mY2) {
-    return LinearEasing;
-  }
-
-  // Precompute samples table
-  var sampleValues = float32ArraySupported ? new Float32Array(kSplineTableSize) : new Array(kSplineTableSize);
-  for (var i = 0; i < kSplineTableSize; ++i) {
-    sampleValues[i] = calcBezier(i * kSampleStepSize, mX1, mX2);
-  }
-
-  function getTForX (aX) {
-    var intervalStart = 0.0;
-    var currentSample = 1;
-    var lastSample = kSplineTableSize - 1;
-
-    for (; currentSample !== lastSample && sampleValues[currentSample] <= aX; ++currentSample) {
-      intervalStart += kSampleStepSize;
-    }
-    --currentSample;
-
-    // Interpolate to provide an initial guess for t
-    var dist = (aX - sampleValues[currentSample]) / (sampleValues[currentSample + 1] - sampleValues[currentSample]);
-    var guessForT = intervalStart + dist * kSampleStepSize;
-
-    var initialSlope = getSlope(guessForT, mX1, mX2);
-    if (initialSlope >= NEWTON_MIN_SLOPE) {
-      return newtonRaphsonIterate(aX, guessForT, mX1, mX2);
-    } else if (initialSlope === 0.0) {
-      return guessForT;
-    } else {
-      return binarySubdivide(aX, intervalStart, intervalStart + kSampleStepSize, mX1, mX2);
-    }
-  }
-
-  return function BezierEasing (x) {
-    // Because JavaScript number are imprecise, we should guarantee the extremes are right.
-    if (x === 0) {
-      return 0;
-    }
-    if (x === 1) {
-      return 1;
-    }
-    return calcBezier(getTForX(x), mY1, mY2);
-  };
-};
-
-},{}],"../src/layers/particle.ts":[function(require,module,exports) {
-var process = require("process");
-"use strict";
-
-function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
-function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
-
-function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
-
-function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
-
-function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
-
-function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
-
-var __importDefault = this && this.__importDefault || function (mod) {
-  return mod && mod.__esModule ? mod : {
-    "default": mod
-  };
-};
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var layer_1 = __importDefault(require("./layer"));
-
-var easing = require('bezier-easing'); // TODO: parcel vs typescript!
-
-
-exports.EASING_LINEAR = 'easeLinear';
-exports.EASING_INCUBIC = 'easeInCubic';
-var EASING_FUNCTIONS = {
-  'easeLinear': easing(0, 0, 1, 1),
-  'easeInCubic': easing(.55, .06, .67, .19)
-};
-
-var nowMS = function nowMS() {
-  return typeof performance !== 'undefined' ? Math.trunc(performance.now()) : Number(process.hrtime.bigint()) / 1000000;
-};
-
-var Particle =
-/*#__PURE__*/
-function (_layer_1$default) {
-  _inherits(Particle, _layer_1$default);
-
-  function Particle(options) {
-    var _this;
-
-    _classCallCheck(this, Particle);
-
-    _this = _possibleConstructorReturn(this, _getPrototypeOf(Particle).call(this, options.position.x, options.position.y, options.size.w, options.size.h));
-    _this.color = options.color || [255, 255, 255, 1];
-    _this.transitions = options.transitions || [];
-    _this.loop = 'loop' in options ? options.loop : true;
-    _this.totalDuration = _this.transitions.reduce(function (acc, t) {
-      return Math.max(acc, t.start + t.duration);
-    }, 0);
-    _this.timeCreated = nowMS();
-    return _this;
-  }
-
-  _createClass(Particle, [{
-    key: "frame",
-    value: function frame(frameTime) {
-      var _this2 = this;
-
-      var timeOffset = frameTime - this.timeCreated;
-
-      if (timeOffset > this.totalDuration) {
-        if (!this.loop) {
-          this.delete();
-          return null;
-        } else {
-          timeOffset = timeOffset % this.totalDuration;
-        }
-      }
-
-      this.transitions.forEach(function (t) {
-        if (t.start > timeOffset || t.start + t.duration < timeOffset) return true;
-        var effectOffset = (timeOffset - t.start) / t.duration;
-
-        if (t.effect === 'fade') {
-          if (!('from' in t)) {
-            t.from = _this2.color[3];
-          } else {
-            _this2.color[3] = Math.trunc(t.from + (t.target - t.from) * EASING_FUNCTIONS[t.easing](effectOffset));
-          }
-        } else if (t.effect === 'moveY') {
-          if (!('from' in t)) {
-            t.from = _this2.position.y;
-          } else {
-            _this2.position.y = Math.trunc(t.from + (t.target - t.from) * EASING_FUNCTIONS[t.easing](effectOffset));
-          }
-        }
-      });
-      return Array(this.size.h).fill(undefined).map(function () {
-        return Array(_this2.size.w).fill(undefined).map(function () {
-          return _this2.color;
-        });
-      });
-    }
-  }]);
-
-  return Particle;
-}(layer_1.default);
-
-exports.default = Particle;
-},{"./layer":"../src/layers/layer.ts","bezier-easing":"../node_modules/bezier-easing/src/index.js","process":"../node_modules/process/browser.js"}],"../src/scenes/vertical-race.ts":[function(require,module,exports) {
+},{"process":"../node_modules/process/browser.js"}],"../src/scenes/rainbow.ts":[function(require,module,exports) {
 "use strict";
 
 var __importDefault = this && this.__importDefault || function (mod) {
   return mod && mod.__esModule ? mod : {
     "default": mod
   };
-};
-
-var __importStar = this && this.__importStar || function (mod) {
-  if (mod && mod.__esModule) return mod;
-  var result = {};
-  if (mod != null) for (var k in mod) {
-    if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
-  }
-  result["default"] = mod;
-  return result;
 };
 
 Object.defineProperty(exports, "__esModule", {
@@ -865,56 +485,33 @@ Object.defineProperty(exports, "__esModule", {
 
 var matrix_display_1 = __importDefault(require("../utils/matrix-display"));
 
-var compositor_1 = __importDefault(require("../utils/compositor"));
-
-var particle_1 = __importStar(require("../layers/particle"));
-
-var randomInt = function randomInt(min, max) {
-  return min + Math.floor(Math.random() * (max - min + 1));
-};
-
 var matrix = new matrix_display_1.default({
-  rows: 12,
   cols: 12,
+  rows: 12,
   frameRate: 30
-});
-var compositor = new compositor_1.default({
-  bbox: {
-    minX: 0,
-    minY: 0,
-    maxX: matrix.cols - 1,
-    maxY: matrix.rows - 1
-  }
-});
+}); // Get color for a position on the pride rainbow (fraction of 1)
 
-var addParticle = function addParticle() {
-  var len = randomInt(1, 20) === 1 ? randomInt(5, 7) : randomInt(2, 4);
-  var p = new particle_1.default({
-    position: {
-      x: randomInt(0, 11),
-      y: 0 - len
-    },
-    size: {
-      w: 1,
-      h: len
-    },
-    color: [255, 255, 255, 0.4],
-    loop: false,
-    transitions: [{
-      start: 0,
-      duration: len * 100,
-      effect: 'moveY',
-      target: 12,
-      easing: particle_1.EASING_LINEAR
-    }]
-  });
-  compositor.add(p);
+var rainbowColourForPos = function rainbowColourForPos(pos) {
+  var cols = [[231, 0, 0], [255, 140, 0], [255, 239, 0], [0, 129, 31], [0, 68, 255], [118, 0, 137], [118, 0, 137], [0, 68, 255], [0, 129, 31], [255, 239, 0], [255, 140, 0], [231, 0, 0]];
+  var from = pos ? Math.floor((cols.length - 1) * (pos % 1)) : 0;
+  var to = from + 1;
+  var offset = (cols.length - 1) * (pos % 1) % 1;
+  var color = [cols[from][0] + Math.trunc((cols[to][0] - cols[from][0]) * offset), cols[from][1] + Math.trunc((cols[to][1] - cols[from][1]) * offset), cols[from][2] + Math.trunc((cols[to][2] - cols[from][2]) * offset), 1];
+  return color;
 };
 
-setInterval(addParticle, 50);
-matrix.play(compositor.frame.bind(compositor));
+var frameCount = 300;
+var curFrame = 0;
+matrix.play(function () {
+  curFrame++;
+  if (curFrame > frameCount) curFrame = 1;
+  var offset = curFrame / frameCount;
+  matrix.setEach(function (x, y) {
+    return rainbowColourForPos(offset + y / matrix.rows / 2);
+  });
+});
 exports.default = matrix;
-},{"../utils/matrix-display":"../src/utils/matrix-display.ts","../utils/compositor":"../src/utils/compositor.ts","../layers/particle":"../src/layers/particle.ts"}],"index.ts":[function(require,module,exports) {
+},{"../utils/matrix-display":"../src/utils/matrix-display.ts"}],"index.ts":[function(require,module,exports) {
 "use strict";
 
 function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _nonIterableRest(); }
@@ -935,20 +532,20 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var vertical_race_1 = __importDefault(require("../src/scenes/vertical-race"));
+var rainbow_1 = __importDefault(require("../src/scenes/rainbow"));
 
 function canvasMode() {
   var canvas = document.createElement('canvas');
-  canvas.setAttribute('width', String(vertical_race_1.default.cols));
-  canvas.setAttribute('height', String(vertical_race_1.default.rows));
+  canvas.setAttribute('width', String(rainbow_1.default.cols));
+  canvas.setAttribute('height', String(rainbow_1.default.rows));
   document.getElementById('output').appendChild(canvas);
   var ctx = canvas.getContext('2d');
-  var imageData = ctx.createImageData(vertical_race_1.default.cols, vertical_race_1.default.rows);
+  var imageData = ctx.createImageData(rainbow_1.default.cols, rainbow_1.default.rows);
 
   function renderToCanvas(data) {
     data.forEach(function (row, rowIdx) {
       row.forEach(function (pixel, colIdx) {
-        var pos = (rowIdx * vertical_race_1.default.cols + colIdx) * 4;
+        var pos = (rowIdx * rainbow_1.default.cols + colIdx) * 4;
 
         var _pixel = _slicedToArray(pixel, 4),
             red = _pixel[0],
@@ -965,7 +562,7 @@ function canvasMode() {
     ctx.putImageData(imageData, 0, 0);
   }
 
-  vertical_race_1.default.useRenderer(renderToCanvas);
+  rainbow_1.default.useRenderer(renderToCanvas);
 }
 
 function tableMode() {
@@ -973,10 +570,10 @@ function tableMode() {
   var table = document.createElement('table');
   var tbody = document.createElement('tbody');
 
-  for (var y = 0; y < vertical_race_1.default.rows; y++) {
+  for (var y = 0; y < rainbow_1.default.rows; y++) {
     var row = document.createElement('tr');
 
-    for (var x = 0; x < vertical_race_1.default.cols; x++) {
+    for (var x = 0; x < rainbow_1.default.cols; x++) {
       var cell = document.createElement('td');
       pixelEls.push(cell);
       row.appendChild(cell);
@@ -991,17 +588,17 @@ function tableMode() {
   function renderToTable(data) {
     data.forEach(function (row, rowIdx) {
       row.forEach(function (pixel, colIdx) {
-        var pos = rowIdx * vertical_race_1.default.cols + colIdx;
+        var pos = rowIdx * rainbow_1.default.cols + colIdx;
         pixelEls[pos].style.backgroundColor = "rgb(".concat(pixel[0], ", ").concat(pixel[1], ", ").concat(pixel[2], ")");
       });
     });
   }
 
-  vertical_race_1.default.useRenderer(renderToTable);
+  rainbow_1.default.useRenderer(renderToTable);
 }
 
 document.addEventListener('DOMContentLoaded', tableMode);
-},{"../src/scenes/vertical-race":"../src/scenes/vertical-race.ts"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"../src/scenes/rainbow":"../src/scenes/rainbow.ts"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -1029,7 +626,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "50562" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "52430" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
