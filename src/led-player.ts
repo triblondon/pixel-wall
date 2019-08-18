@@ -4,9 +4,10 @@ import signalHandler from './utils/signal-handler';
 const argv = require('argv');
 
 const args = argv.option({ name: 'scene', short: 's', type: 'string', description: 'Name of scene to render' }).run();
-console.log(args);
 
 const scene = require('./scenes/' + args.options.scene);
+
+console.log(scene);
 
 signalHandler.on(['int', 'term'], () => scene.setAll(0,0,0).render());
 
