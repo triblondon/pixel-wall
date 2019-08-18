@@ -69,7 +69,7 @@ export default class Text extends Layer {
 	}
 
 	setText(str: string) {
-		this.textPixels = [...(str.toUpperCase()].reduce((rows, char) => {
+		this.textPixels = [...(str.toUpperCase())].reduce((rows, char) => {
 			if (!(char in CHARS)) char = ' ';
 			const charWidth = CHARS[char].length / CHAR_HEIGHT;
 			for (let y=0; y<rows.length; y++) {

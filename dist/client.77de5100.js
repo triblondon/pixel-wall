@@ -470,7 +470,302 @@ function () {
 }();
 
 exports.default = MatrixDisplay;
-},{"process":"../node_modules/process/browser.js"}],"../src/scenes/rainbow.ts":[function(require,module,exports) {
+},{"process":"../node_modules/process/browser.js"}],"../src/layers/layer.ts":[function(require,module,exports) {
+"use strict";
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var Layer =
+/*#__PURE__*/
+function () {
+  function Layer(x, y, w, h) {
+    _classCallCheck(this, Layer);
+
+    this.active = true;
+    this.position = {
+      x: x,
+      y: y
+    };
+    this.size = {
+      w: w,
+      h: h
+    };
+  }
+
+  _createClass(Layer, [{
+    key: "delete",
+    value: function _delete() {
+      this.active = false;
+    }
+  }, {
+    key: "isActive",
+    value: function isActive() {
+      return Boolean(this.active);
+    }
+  }]);
+
+  return Layer;
+}();
+
+exports.default = Layer;
+},{}],"../src/utils/compositor.ts":[function(require,module,exports) {
+"use strict";
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _nonIterableRest(); }
+
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance"); }
+
+function _iterableToArrayLimit(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
+
+function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
+
+var __importDefault = this && this.__importDefault || function (mod) {
+  return mod && mod.__esModule ? mod : {
+    "default": mod
+  };
+};
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var layer_1 = __importDefault(require("../layers/layer"));
+
+var mix = function mix(baseColor, newColor) {
+  var _baseColor = _slicedToArray(baseColor, 3),
+      baseRed = _baseColor[0],
+      baseGreen = _baseColor[1],
+      baseBlue = _baseColor[2];
+
+  var _newColor = _slicedToArray(newColor, 4),
+      newRed = _newColor[0],
+      newGreen = _newColor[1],
+      newBlue = _newColor[2],
+      alpha = _newColor[3];
+
+  if (alpha === undefined) alpha = 1;
+  if (alpha > 1) alpha /= 255;
+  return [Math.trunc(newRed * alpha + baseRed * (1 - alpha)), Math.trunc(newGreen * alpha + baseGreen * (1 - alpha)), Math.trunc(newBlue * alpha + baseBlue * (1 - alpha))];
+};
+
+var Compositor =
+/*#__PURE__*/
+function () {
+  function Compositor(options) {
+    _classCallCheck(this, Compositor);
+
+    this.layers = [];
+    this.bgColor = options && options.bgColor || [0, 0, 0, 0];
+    this.bbox = options.bbox;
+  }
+
+  _createClass(Compositor, [{
+    key: "add",
+    value: function add(layerObj) {
+      if (!(layerObj instanceof layer_1.default)) {
+        throw new Error(layerObj + ' is not a Layer');
+      }
+
+      this.layers.push(layerObj);
+    }
+  }, {
+    key: "frame",
+    value: function frame(timeOffset) {
+      var _this = this;
+
+      var numCols = this.bbox.maxX - this.bbox.minX + 1;
+      var numRows = this.bbox.maxY - this.bbox.minY + 1;
+      this.layers = this.layers.filter(function (l) {
+        return l.isActive();
+      });
+      return this.layers.reduce(function (out, layerObj, idx) {
+        var layerFrameData = layerObj.frame(timeOffset);
+        if (!layerFrameData) return out;
+        layerFrameData.forEach(function (row, rowOffset) {
+          row.forEach(function (pixel, colOffset) {
+            var x = layerObj.position.x + colOffset - _this.bbox.minX;
+            var y = layerObj.position.y + rowOffset - _this.bbox.minY;
+
+            if (x >= _this.bbox.minX && x <= _this.bbox.maxX && y >= _this.bbox.minY && y <= _this.bbox.maxY) {
+              out[y][x] = mix(out[y][x] || _this.bgColor, pixel);
+            }
+          });
+        });
+        return out;
+      }, Array(numRows).fill(undefined).map(function (row) {
+        return Array(numCols).fill(_this.bgColor);
+      }));
+    }
+  }]);
+
+  return Compositor;
+}();
+
+exports.default = Compositor;
+},{"../layers/layer":"../src/layers/layer.ts"}],"../src/layers/text.ts":[function(require,module,exports) {
+"use strict";
+
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
+
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance"); }
+
+function _iterableToArray(iter) { if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter); }
+
+function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+var __importDefault = this && this.__importDefault || function (mod) {
+  return mod && mod.__esModule ? mod : {
+    "default": mod
+  };
+};
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var layer_1 = __importDefault(require("./layer"));
+
+var CHAR_HEIGHT = 5;
+var CHAR_SPACING = 1;
+var CHARS = {
+  'A': ' ####  ##  ######  #',
+  'B': '### #  #### #  #### ',
+  'C': ' ## #  ##   #  # ## ',
+  'D': '### #  ##  ##  #### ',
+  'E': '#####   ### #   ####',
+  'F': '#####   ### #   #   ',
+  'G': ' ####   # ###  # ###',
+  'H': '#  ##  ######  ##  #',
+  'I': '### #  #  # ###',
+  'J': ' ###   #   ##  # ## ',
+  'K': '#  ## # ##  # # #  #',
+  'L': '#   #   #   #   ####',
+  'M': '#   ### ### # ##   ##   #',
+  'N': '#  ### ## ###  ##  #',
+  'O': ' ## #  ##  ##  # ## ',
+  'P': '#####  #### #   #   ',
+  'Q': ' ##  #  # #  # #  #  ####',
+  'R': '### #  ##  #### #  #',
+  'S': ' ####    ##    #### ',
+  'T': '#####  #    #    #    #  ',
+  'U': '#  ##  ##  ##  # ## ',
+  'V': '#  ##  ##  # # #  # ',
+  'W': '# # ## # ## # ## # # # # ',
+  'X': '#  ### # ## #  ##  #',
+  'Y': '#  ##  # ###   # ## ',
+  'Z': '####   # ## #   ####',
+  '!': '### #',
+  ' ': '                    '
+};
+
+var Text =
+/*#__PURE__*/
+function (_layer_1$default) {
+  _inherits(Text, _layer_1$default);
+
+  function Text(options) {
+    var _this;
+
+    _classCallCheck(this, Text);
+
+    _this = _possibleConstructorReturn(this, _getPrototypeOf(Text).call(this, options.position.x, options.position.y, 0, CHAR_HEIGHT));
+    _this.color = options.color || [255, 255, 255, 255];
+    _this.speed = options.speed || 0;
+    _this.loop = Boolean(options.loop);
+    _this.textPixels = null;
+    _this.dirty = false;
+    _this.origX = _this.position.x;
+    if (options.text) _this.setText(options.text);
+    return _this;
+  }
+
+  _createClass(Text, [{
+    key: "setText",
+    value: function setText(str) {
+      this.textPixels = _toConsumableArray(str.toUpperCase()).reduce(function (rows, char) {
+        if (!(char in CHARS)) char = ' ';
+        var charWidth = CHARS[char].length / CHAR_HEIGHT;
+
+        for (var y = 0; y < rows.length; y++) {
+          rows[y] += CHARS[char].substring(y * charWidth, (y + 1) * charWidth) + ' '.repeat(CHAR_SPACING);
+        }
+
+        return rows;
+      }, Array(CHAR_HEIGHT).fill(''));
+      this.size.w = this.textPixels[0].length;
+      this.dirty = true;
+    }
+  }, {
+    key: "frame",
+    value: function frame() {
+      var _this2 = this;
+
+      if (this.speed) {
+        this.position.x -= this.speed;
+
+        if (this.position.x < 0 - this.size.w - 1) {
+          if (this.loop) {
+            this.position.x = this.origX;
+          } else {
+            this.active = false;
+            return;
+          }
+        }
+      }
+
+      if (this.dirty || this.speed) {
+        this.dirty = false;
+
+        var pixelData = _toConsumableArray(this.textPixels).map(function (row) {
+          return _toConsumableArray(row).map(function (char) {
+            return char !== ' ' ? _this2.color : [0, 0, 0, 0];
+          });
+        });
+
+        return pixelData;
+      } else {
+        return null;
+      }
+    }
+  }]);
+
+  return Text;
+}(layer_1.default);
+
+exports.default = Text;
+},{"./layer":"../src/layers/layer.ts"}],"../src/scenes/text-test.ts":[function(require,module,exports) {
 "use strict";
 
 var __importDefault = this && this.__importDefault || function (mod) {
@@ -485,33 +780,36 @@ Object.defineProperty(exports, "__esModule", {
 
 var matrix_display_1 = __importDefault(require("../utils/matrix-display"));
 
+var compositor_1 = __importDefault(require("../utils/compositor"));
+
+var text_1 = __importDefault(require("../layers/text"));
+
 var matrix = new matrix_display_1.default({
-  cols: 12,
   rows: 12,
-  frameRate: 30
-}); // Get color for a position on the pride rainbow (fraction of 1)
-
-var rainbowColourForPos = function rainbowColourForPos(pos) {
-  var cols = [[231, 0, 0], [255, 140, 0], [255, 239, 0], [0, 129, 31], [0, 68, 255], [118, 0, 137], [118, 0, 137], [0, 68, 255], [0, 129, 31], [255, 239, 0], [255, 140, 0], [231, 0, 0]];
-  var from = pos ? Math.floor((cols.length - 1) * (pos % 1)) : 0;
-  var to = from + 1;
-  var offset = (cols.length - 1) * (pos % 1) % 1;
-  var color = [cols[from][0] + Math.trunc((cols[to][0] - cols[from][0]) * offset), cols[from][1] + Math.trunc((cols[to][1] - cols[from][1]) * offset), cols[from][2] + Math.trunc((cols[to][2] - cols[from][2]) * offset), 1];
-  return color;
-};
-
-var frameCount = 300;
-var curFrame = 0;
-matrix.play(function () {
-  curFrame++;
-  if (curFrame > frameCount) curFrame = 1;
-  var offset = curFrame / frameCount;
-  matrix.setEach(function (x, y) {
-    return rainbowColourForPos(offset + y / matrix.rows / 2);
-  });
+  cols: 12,
+  frameRate: 20
 });
+var compositor = new compositor_1.default({
+  bbox: {
+    minX: 0,
+    minY: 0,
+    maxX: matrix.cols - 1,
+    maxY: matrix.rows - 1
+  }
+});
+compositor.add(new text_1.default({
+  position: {
+    x: 12,
+    y: 3
+  },
+  color: [152, 210, 255, 1],
+  speed: 1,
+  loop: true,
+  text: 'BONSOIR SARAH!'
+}));
+matrix.play(compositor.frame.bind(compositor));
 exports.default = matrix;
-},{"../utils/matrix-display":"../src/utils/matrix-display.ts"}],"index.ts":[function(require,module,exports) {
+},{"../utils/matrix-display":"../src/utils/matrix-display.ts","../utils/compositor":"../src/utils/compositor.ts","../layers/text":"../src/layers/text.ts"}],"index.ts":[function(require,module,exports) {
 "use strict";
 
 function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _nonIterableRest(); }
@@ -532,20 +830,20 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var rainbow_1 = __importDefault(require("../src/scenes/rainbow"));
+var text_test_1 = __importDefault(require("../src/scenes/text-test"));
 
 function canvasMode() {
   var canvas = document.createElement('canvas');
-  canvas.setAttribute('width', String(rainbow_1.default.cols));
-  canvas.setAttribute('height', String(rainbow_1.default.rows));
+  canvas.setAttribute('width', String(text_test_1.default.cols));
+  canvas.setAttribute('height', String(text_test_1.default.rows));
   document.getElementById('output').appendChild(canvas);
   var ctx = canvas.getContext('2d');
-  var imageData = ctx.createImageData(rainbow_1.default.cols, rainbow_1.default.rows);
+  var imageData = ctx.createImageData(text_test_1.default.cols, text_test_1.default.rows);
 
   function renderToCanvas(data) {
     data.forEach(function (row, rowIdx) {
       row.forEach(function (pixel, colIdx) {
-        var pos = (rowIdx * rainbow_1.default.cols + colIdx) * 4;
+        var pos = (rowIdx * text_test_1.default.cols + colIdx) * 4;
 
         var _pixel = _slicedToArray(pixel, 4),
             red = _pixel[0],
@@ -562,7 +860,7 @@ function canvasMode() {
     ctx.putImageData(imageData, 0, 0);
   }
 
-  rainbow_1.default.useRenderer(renderToCanvas);
+  text_test_1.default.useRenderer(renderToCanvas);
 }
 
 function tableMode() {
@@ -570,10 +868,10 @@ function tableMode() {
   var table = document.createElement('table');
   var tbody = document.createElement('tbody');
 
-  for (var y = 0; y < rainbow_1.default.rows; y++) {
+  for (var y = 0; y < text_test_1.default.rows; y++) {
     var row = document.createElement('tr');
 
-    for (var x = 0; x < rainbow_1.default.cols; x++) {
+    for (var x = 0; x < text_test_1.default.cols; x++) {
       var cell = document.createElement('td');
       pixelEls.push(cell);
       row.appendChild(cell);
@@ -588,17 +886,17 @@ function tableMode() {
   function renderToTable(data) {
     data.forEach(function (row, rowIdx) {
       row.forEach(function (pixel, colIdx) {
-        var pos = rowIdx * rainbow_1.default.cols + colIdx;
+        var pos = rowIdx * text_test_1.default.cols + colIdx;
         pixelEls[pos].style.backgroundColor = "rgb(".concat(pixel[0], ", ").concat(pixel[1], ", ").concat(pixel[2], ")");
       });
     });
   }
 
-  rainbow_1.default.useRenderer(renderToTable);
+  text_test_1.default.useRenderer(renderToTable);
 }
 
 document.addEventListener('DOMContentLoaded', tableMode);
-},{"../src/scenes/rainbow":"../src/scenes/rainbow.ts"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"../src/scenes/text-test":"../src/scenes/text-test.ts"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;

@@ -1,4 +1,4 @@
-import scene from '../src/scenes/rainbow';
+import scene from '../src/scenes/text-test';
 import { FrameDataType } from '../src/utils/matrix-display';
 
 function canvasMode() {
