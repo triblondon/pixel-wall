@@ -355,7 +355,7 @@ Object.defineProperty(exports, "__esModule", {
 }); // Calculate a duration in milliseconds between two BigInt timestamps
 
 var now = function now() {
-  return globalThis.performance !== undefined ? BigInt(Math.trunc(performance.now() * 1000000)) : process.hrtime.bigint();
+  return typeof performance !== 'undefined' ? BigInt(Math.trunc(performance.now() * 1000000)) : process.hrtime.bigint();
 };
 
 var durationMS = function durationMS(endNS, startNS) {
