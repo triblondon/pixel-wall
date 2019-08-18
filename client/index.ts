@@ -1,4 +1,4 @@
-import scene from '../src/scenes/sparkle';
+import scene from '../src/scenes/vertical-race';
 import { FrameDataType } from '../src/utils/matrix-display';
 
 function canvasMode() {

@@ -4,6 +4,8 @@
 		"module": "commonjs",
 		"rootDir": "./src",
 		"outDir": "./lib",
+		"resolveJsonModule": true,
+		"esModuleInterop": true,
 		"noImplicitAny": true,
 		"typeRoots": [
 			"./node_modules/@types"
