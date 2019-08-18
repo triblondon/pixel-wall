@@ -6,7 +6,7 @@ const argv = require('argv');
 const args = argv.option({ name: 'scene', short: 's', type: 'string', description: 'Name of scene to render' }).run();
 
 (async () => {
-	const scene = await import('./scenes/' + args.options.scene);
+	const scene = (await import('./scenes/' + args.options.scene)).default;
 
 	console.log(scene);
 
