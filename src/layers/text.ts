@@ -15,6 +15,8 @@ type CharMapType = {
 
 const CHAR_HEIGHT = 5;
 const CHAR_SPACING = 1;
+
+// https://www.shutterstock.com/image-vector/pixel-font-4x5-grid-numbers-letters-472434670
 const CHARS: CharMapType = {
 	'A': ' ####  ##  ######  #',
 	'B': '### #  #### #  #### ',
