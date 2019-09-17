@@ -18,7 +18,7 @@ class TextImage extends Layer {
 	private dirty: boolean;
 
 	constructor(options: OptionsType) {
-		super(options.position.x, options.position.y, options.size.w, options.size.h);
+		super(options.position.x, options.position.y);
 		this.text = '';
 		this.imageData = null;
 		this.dirty = false;

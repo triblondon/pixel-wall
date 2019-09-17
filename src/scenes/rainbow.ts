@@ -1,6 +1,6 @@
 import Matrix, { PixelDataType } from '../utils/matrix-display';
 
-const matrix = new Matrix({ cols: 12, rows: 12, frameRate: 30 });
+const matrix = new Matrix({ cols: 60, rows: 25, frameRate: 30 });
 
 // Get color for a position on the pride rainbow (fraction of 1)
 const rainbowColourForPos = (pos: number): PixelDataType => {
@@ -23,7 +23,7 @@ matrix.play(() => {
 	curFrame++;
 	if (curFrame > frameCount) curFrame = 1;
 	const offset = curFrame / frameCount;
-	matrix.setEach((x,y) => rainbowColourForPos(offset + ((y / matrix.rows)/2)));
+	matrix.setEach((x,y) => rainbowColourForPos(offset + ((x / matrix.rows)/2)));
 });
 
 export default matrix;

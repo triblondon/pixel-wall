@@ -34,7 +34,7 @@ export default class MatrixDisplay {
 		return this.options.cols;
 	}
 	get rows() {
-		return this.options.cols;
+		return this.options.rows;
 	}
 	setPixel(x: number, y: number, r: number, g: number, b: number) {
 		this.pixelData[y][x] = [r, g, b, 1];
@@ -55,6 +55,7 @@ export default class MatrixDisplay {
 	}
 	useRenderer(renderFn: Function) {
 		this.options.renderFn = renderFn;
+		this.render();
 	}
 	render() {
 		this.options.renderFn && this.options.renderFn(this.pixelData);

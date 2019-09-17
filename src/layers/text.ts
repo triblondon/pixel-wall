@@ -58,15 +58,17 @@ export default class Text extends Layer {
 	private textPixels: string[]
 	private dirty: boolean;
 	private origX: number;
+	private virtX: number;
 
 	constructor(options: OptionsType) {
-		super(options.position.x, options.position.y, 0, CHAR_HEIGHT);
+		super(options.position.x, options.position.y);
 		this.color = options.color || [255,255,255,255];
 		this.speed = options.speed || 0;
 		this.loop = Boolean(options.loop);
 		this.textPixels = null;
 		this.dirty = false;
 		this.origX = this.position.x;
+		this.virtX = this.position.x;
 		if (options.text) this.setText(options.text);
 	}
 
@@ -79,16 +81,15 @@ export default class Text extends Layer {
 			}
 			return rows;
 		}, Array(CHAR_HEIGHT).fill(''));
-		this.size.w = this.textPixels[0].length;
 		this.dirty = true;
 	}
 
 	frame() {
 		if (this.speed) {
-			this.position.x -= this.speed;
-			if (this.position.x < (0 - this.size.w - 1)) {
+			this.virtX -= this.speed;
+			if (this.virtX < (0 - this.textPixels[0].length - 1)) {
 				if (this.loop) {
-					this.position.x = this.origX;
+					this.virtX = this.origX;
 				} else {
 					this.active = false;
 					return;
@@ -97,6 +98,7 @@ export default class Text extends Layer {
 		}
 		if (this.dirty || this.speed) {
 			this.dirty = false;
+			this.position.x = Math.round(this.virtX);
 			const pixelData: FrameDataType = [...this.textPixels]
 				.map<RowDataType>(row => [...row]
 					.map<PixelDataType>(char => (char !== ' ') ? this.color : [0, 0, 0, 0])

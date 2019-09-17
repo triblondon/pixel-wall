@@ -412,6 +412,7 @@ function () {
     key: "useRenderer",
     value: function useRenderer(renderFn) {
       this.options.renderFn = renderFn;
+      this.render();
     }
   }, {
     key: "render",
@@ -462,7 +463,7 @@ function () {
   }, {
     key: "rows",
     get: function get() {
-      return this.options.cols;
+      return this.options.rows;
     }
   }]);
 
@@ -486,17 +487,13 @@ Object.defineProperty(exports, "__esModule", {
 var Layer =
 /*#__PURE__*/
 function () {
-  function Layer(x, y, w, h) {
+  function Layer(x, y) {
     _classCallCheck(this, Layer);
 
     this.active = true;
     this.position = {
       x: x,
       y: y
-    };
-    this.size = {
-      w: w,
-      h: h
     };
   }
 
@@ -762,6 +759,13 @@ var layer_1 = __importDefault(require("./layer"));
 var easing = require('bezier-easing'); // TODO: parcel vs typescript!
 
 
+var TransitionEffect;
+
+(function (TransitionEffect) {
+  TransitionEffect["Fade"] = "fade";
+  TransitionEffect["MoveY"] = "movey";
+})(TransitionEffect = exports.TransitionEffect || (exports.TransitionEffect = {}));
+
 exports.EASING_LINEAR = 'easeLinear';
 exports.EASING_INCUBIC = 'easeInCubic';
 var EASING_FUNCTIONS = {
@@ -783,14 +787,18 @@ function (_layer_1$default) {
 
     _classCallCheck(this, Particle);
 
-    _this = _possibleConstructorReturn(this, _getPrototypeOf(Particle).call(this, options.position.x, options.position.y, options.size.w, options.size.h));
-    _this.color = options.color || [255, 255, 255, 1];
+    _this = _possibleConstructorReturn(this, _getPrototypeOf(Particle).call(this, options.position.x, options.position.y));
     _this.transitions = options.transitions || [];
+    _this.transitionProps = {
+      opacity: undefined
+    };
     _this.loop = 'loop' in options ? options.loop : true;
     _this.totalDuration = _this.transitions.reduce(function (acc, t) {
       return Math.max(acc, t.start + t.duration);
     }, 0);
     _this.timeCreated = nowMS();
+    _this.source = options.source;
+    _this.sourceData = _this.source.pixelData;
     return _this;
   }
 
@@ -801,26 +809,30 @@ function (_layer_1$default) {
 
       var timeOffset = frameTime - this.timeCreated;
 
-      if (timeOffset > this.totalDuration) {
+      if (this.totalDuration && timeOffset > this.totalDuration) {
         if (!this.loop) {
           this.delete();
           return null;
         } else {
           timeOffset = timeOffset % this.totalDuration;
+          this.transitions.forEach(function (t) {
+            t.complete = false;
+          });
         }
       }
 
-      this.transitions.forEach(function (t) {
-        if (t.start > timeOffset || t.start + t.duration < timeOffset) return true;
-        var effectOffset = (timeOffset - t.start) / t.duration;
+      this.transitions.filter(function (t) {
+        return t.start <= timeOffset && !t.complete;
+      }).forEach(function (t) {
+        if (!t.easing) t.easing = exports.EASING_LINEAR;
+        var effectOffset = Math.min((timeOffset - t.start) / t.duration, 1);
+        t.complete = effectOffset >= 1;
 
-        if (t.effect === 'fade') {
-          if (!('from' in t)) {
-            t.from = _this2.color[3];
-          } else {
-            _this2.color[3] = t.from + (t.target - t.from) * EASING_FUNCTIONS[t.easing](effectOffset);
-          }
-        } else if (t.effect === 'moveY') {
+        if (t.effect === TransitionEffect.Fade) {
+          if (t.from === undefined) t.from = _this2.transitionProps.opacity;
+          if (t.from === undefined) t.from = 1;
+          _this2.transitionProps.opacity = t.from + (t.target - t.from) * EASING_FUNCTIONS[t.easing](effectOffset);
+        } else if (t.effect === TransitionEffect.MoveY) {
           if (!('from' in t)) {
             t.from = _this2.position.y;
           } else {
@@ -828,9 +840,12 @@ function (_layer_1$default) {
           }
         }
       });
-      return Array(this.size.h).fill(undefined).map(function () {
-        return Array(_this2.size.w).fill(undefined).map(function () {
-          return _this2.color;
+      return this.sourceData.map(function (row) {
+        return row.map(function (pxColor) {
+          var newpx = [pxColor[0], pxColor[1], pxColor[2], pxColor[3]]; // TS doesn't seem to like spread operator here :-(
+
+          if (_this2.transitionProps.opacity !== undefined) newpx[3] *= _this2.transitionProps.opacity;
+          return newpx;
         });
       });
     }
@@ -840,7 +855,94 @@ function (_layer_1$default) {
 }(layer_1.default);
 
 exports.default = Particle;
-},{"./layer":"../src/layers/layer.ts","bezier-easing":"../node_modules/bezier-easing/src/index.js","process":"../node_modules/process/browser.js"}],"../src/scenes/point-wave.ts":[function(require,module,exports) {
+},{"./layer":"../src/layers/layer.ts","bezier-easing":"../node_modules/bezier-easing/src/index.js","process":"../node_modules/process/browser.js"}],"../src/shapes/shape.ts":[function(require,module,exports) {
+"use strict";
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var Shape = function Shape() {
+  _classCallCheck(this, Shape);
+};
+
+exports.default = Shape;
+},{}],"../src/shapes/rect.ts":[function(require,module,exports) {
+"use strict";
+
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
+
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance"); }
+
+function _iterableToArray(iter) { if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter); }
+
+function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+var __importDefault = this && this.__importDefault || function (mod) {
+  return mod && mod.__esModule ? mod : {
+    "default": mod
+  };
+};
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var shape_1 = __importDefault(require("./shape"));
+
+var Rect =
+/*#__PURE__*/
+function (_shape_1$default) {
+  _inherits(Rect, _shape_1$default);
+
+  function Rect(options) {
+    var _this;
+
+    _classCallCheck(this, Rect);
+
+    _this = _possibleConstructorReturn(this, _getPrototypeOf(Rect).call(this));
+    options.color = options.color || [255, 255, 255, 1];
+    var row = Array(options.width).fill(undefined).map(function () {
+      return options.color;
+    });
+    _this.pixels = Array(options.height).fill(undefined).map(function () {
+      return _toConsumableArray(row);
+    });
+    return _this;
+  }
+
+  _createClass(Rect, [{
+    key: "pixelData",
+    get: function get() {
+      return this.pixels;
+    }
+  }]);
+
+  return Rect;
+}(shape_1.default);
+
+exports.default = Rect;
+},{"./shape":"../src/shapes/shape.ts"}],"../src/scenes/point-wave.ts":[function(require,module,exports) {
 "use strict";
 
 var __importDefault = this && this.__importDefault || function (mod) {
@@ -869,7 +971,9 @@ var compositor_1 = __importDefault(require("../utils/compositor"));
 
 var particle_1 = __importStar(require("../layers/particle"));
 
-var NUM_PARTICLES = 15;
+var rect_1 = __importDefault(require("../shapes/rect"));
+
+var NUM_PARTICLES = 16;
 var WAVE_DURATION = 1000;
 var BETWEEN_WAVES = 5000;
 var FADE_IN_DURATION = 500;
@@ -880,8 +984,8 @@ var randomInt = function randomInt(min, max) {
 };
 
 var matrix = new matrix_display_1.default({
-  rows: 12,
-  cols: 12,
+  rows: 25,
+  cols: 60,
   frameRate: 20
 });
 var compositor = new compositor_1.default({
@@ -894,34 +998,40 @@ var compositor = new compositor_1.default({
 });
 
 var doWave = function doWave() {
-  var color = [randomInt(50, 255), randomInt(50, 255), randomInt(50, 255), 0];
-  var prevPoints = [];
+  var color = [randomInt(50, 255), randomInt(50, 255), randomInt(50, 255), 1];
 
   for (var i = 0; i < NUM_PARTICLES; i++) {
-    var x = randomInt(0, 11);
-    var y = randomInt(0, 11);
-    var fadeOffset = Math.trunc(x / 11 * WAVE_DURATION);
+    var x = randomInt(0, matrix.cols - 1);
+    var y = randomInt(0, matrix.rows - 1);
+    var fadeOffset = Math.trunc(x / matrix.cols * WAVE_DURATION);
     var p = new particle_1.default({
       position: {
         x: x,
         y: y
       },
-      size: {
-        w: 1,
-        h: 1
-      },
-      color: [].concat(color),
+      source: new rect_1.default({
+        width: 1,
+        height: 1,
+        color: color
+      }),
       loop: false,
       transitions: [{
+        start: 0,
+        duration: 0,
+        effect: particle_1.TransitionEffect.Fade,
+        from: 0,
+        target: 0.01
+      }, {
         start: fadeOffset,
         duration: FADE_IN_DURATION,
-        effect: 'fade',
-        target: 0.7,
+        effect: particle_1.TransitionEffect.Fade,
+        from: 0,
+        target: 1,
         easing: particle_1.EASING_INCUBIC
       }, {
         start: fadeOffset + FADE_IN_DURATION,
         duration: FADE_OUT_DURATION,
-        effect: 'fade',
+        effect: particle_1.TransitionEffect.Fade,
         target: 0,
         easing: particle_1.EASING_INCUBIC
       }]
@@ -935,7 +1045,7 @@ var doWave = function doWave() {
 doWave();
 matrix.play(compositor.frame.bind(compositor));
 exports.default = matrix;
-},{"../utils/matrix-display":"../src/utils/matrix-display.ts","../utils/compositor":"../src/utils/compositor.ts","../layers/particle":"../src/layers/particle.ts"}],"index.ts":[function(require,module,exports) {
+},{"../utils/matrix-display":"../src/utils/matrix-display.ts","../utils/compositor":"../src/utils/compositor.ts","../layers/particle":"../src/layers/particle.ts","../shapes/rect":"../src/shapes/rect.ts"}],"index.ts":[function(require,module,exports) {
 "use strict";
 
 function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _nonIterableRest(); }
@@ -1050,7 +1160,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "58346" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "50907" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
