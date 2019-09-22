@@ -13,10 +13,10 @@ const addParticle = () => {
 	const len = randomInt(1,20) === 1 ? randomInt(5,7) : randomInt(2,4);
 	const p = new Particle({
 		position: { x: randomInt(0, matrix.cols), y: 0-len },
-		source: new Rect({ width: 1, height: len, color: [255,255,255,0.4] }),
+		source: new Rect({ width: 1, height: len, color: [255,255,255,0.2] }),
 		loop: false,
 		transitions: [
-			{start: 0, duration: (len * 100), effect: TransitionEffect.MoveY, target: matrix.rows, easing: EASING_LINEAR},
+			{start: 0, duration: ((len * 150) - 200), effect: TransitionEffect.MoveY, target: matrix.rows, easing: EASING_LINEAR},
 		]
 	});
 	compositor.add(p);

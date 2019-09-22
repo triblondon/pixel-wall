@@ -942,7 +942,7 @@ function (_shape_1$default) {
 }(shape_1.default);
 
 exports.default = Rect;
-},{"./shape":"../src/shapes/shape.ts"}],"../src/scenes/point-wave.ts":[function(require,module,exports) {
+},{"./shape":"../src/shapes/shape.ts"}],"../src/scenes/vertical-race.ts":[function(require,module,exports) {
 "use strict";
 
 var __importDefault = this && this.__importDefault || function (mod) {
@@ -973,20 +973,14 @@ var particle_1 = __importStar(require("../layers/particle"));
 
 var rect_1 = __importDefault(require("../shapes/rect"));
 
-var NUM_PARTICLES = 16;
-var WAVE_DURATION = 1000;
-var BETWEEN_WAVES = 5000;
-var FADE_IN_DURATION = 500;
-var FADE_OUT_DURATION = 1000;
-
 var randomInt = function randomInt(min, max) {
   return min + Math.floor(Math.random() * (max - min + 1));
 };
 
 var matrix = new matrix_display_1.default({
-  rows: 25,
-  cols: 60,
-  frameRate: 20
+  rows: 12,
+  cols: 12,
+  frameRate: 30
 });
 var compositor = new compositor_1.default({
   bbox: {
@@ -997,52 +991,31 @@ var compositor = new compositor_1.default({
   }
 });
 
-var doWave = function doWave() {
-  var color = [randomInt(50, 255), randomInt(50, 255), randomInt(50, 255), 1];
-
-  for (var i = 0; i < NUM_PARTICLES; i++) {
-    var x = randomInt(0, matrix.cols - 1);
-    var y = randomInt(0, matrix.rows - 1);
-    var fadeOffset = Math.trunc(x / matrix.cols * WAVE_DURATION);
-    var p = new particle_1.default({
-      position: {
-        x: x,
-        y: y
-      },
-      source: new rect_1.default({
-        width: 1,
-        height: 1,
-        color: color
-      }),
-      loop: false,
-      transitions: [{
-        start: 0,
-        duration: 0,
-        effect: particle_1.TransitionEffect.Fade,
-        from: 0,
-        target: 0.01
-      }, {
-        start: fadeOffset,
-        duration: FADE_IN_DURATION,
-        effect: particle_1.TransitionEffect.Fade,
-        from: 0,
-        target: 1,
-        easing: particle_1.EASING_INCUBIC
-      }, {
-        start: fadeOffset + FADE_IN_DURATION,
-        duration: FADE_OUT_DURATION,
-        effect: particle_1.TransitionEffect.Fade,
-        target: 0,
-        easing: particle_1.EASING_INCUBIC
-      }]
-    });
-    compositor.add(p);
-  }
-
-  setTimeout(doWave, BETWEEN_WAVES);
+var addParticle = function addParticle() {
+  var len = randomInt(1, 20) === 1 ? randomInt(5, 7) : randomInt(2, 4);
+  var p = new particle_1.default({
+    position: {
+      x: randomInt(0, matrix.cols),
+      y: 0 - len
+    },
+    source: new rect_1.default({
+      width: 1,
+      height: len,
+      color: [255, 255, 255, 0.2]
+    }),
+    loop: false,
+    transitions: [{
+      start: 0,
+      duration: len * 150 - 200,
+      effect: particle_1.TransitionEffect.MoveY,
+      target: matrix.rows,
+      easing: particle_1.EASING_LINEAR
+    }]
+  });
+  compositor.add(p);
 };
 
-doWave();
+setInterval(addParticle, 20);
 matrix.play(compositor.frame.bind(compositor));
 exports.default = matrix;
 },{"../utils/matrix-display":"../src/utils/matrix-display.ts","../utils/compositor":"../src/utils/compositor.ts","../layers/particle":"../src/layers/particle.ts","../shapes/rect":"../src/shapes/rect.ts"}],"index.ts":[function(require,module,exports) {
@@ -1066,20 +1039,20 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var point_wave_1 = __importDefault(require("../src/scenes/point-wave"));
+var vertical_race_1 = __importDefault(require("../src/scenes/vertical-race"));
 
 function canvasMode() {
   var canvas = document.createElement('canvas');
-  canvas.setAttribute('width', String(point_wave_1.default.cols));
-  canvas.setAttribute('height', String(point_wave_1.default.rows));
+  canvas.setAttribute('width', String(vertical_race_1.default.cols));
+  canvas.setAttribute('height', String(vertical_race_1.default.rows));
   document.getElementById('output').appendChild(canvas);
   var ctx = canvas.getContext('2d');
-  var imageData = ctx.createImageData(point_wave_1.default.cols, point_wave_1.default.rows);
+  var imageData = ctx.createImageData(vertical_race_1.default.cols, vertical_race_1.default.rows);
 
   function renderToCanvas(data) {
     data.forEach(function (row, rowIdx) {
       row.forEach(function (pixel, colIdx) {
-        var pos = (rowIdx * point_wave_1.default.cols + colIdx) * 4;
+        var pos = (rowIdx * vertical_race_1.default.cols + colIdx) * 4;
 
         var _pixel = _slicedToArray(pixel, 4),
             red = _pixel[0],
@@ -1096,7 +1069,7 @@ function canvasMode() {
     ctx.putImageData(imageData, 0, 0);
   }
 
-  point_wave_1.default.useRenderer(renderToCanvas);
+  vertical_race_1.default.useRenderer(renderToCanvas);
 }
 
 function tableMode() {
@@ -1104,10 +1077,10 @@ function tableMode() {
   var table = document.createElement('table');
   var tbody = document.createElement('tbody');
 
-  for (var y = 0; y < point_wave_1.default.rows; y++) {
+  for (var y = 0; y < vertical_race_1.default.rows; y++) {
     var row = document.createElement('tr');
 
-    for (var x = 0; x < point_wave_1.default.cols; x++) {
+    for (var x = 0; x < vertical_race_1.default.cols; x++) {
       var cell = document.createElement('td');
       pixelEls.push(cell);
       row.appendChild(cell);
@@ -1122,17 +1095,17 @@ function tableMode() {
   function renderToTable(data) {
     data.forEach(function (row, rowIdx) {
       row.forEach(function (pixel, colIdx) {
-        var pos = rowIdx * point_wave_1.default.cols + colIdx;
+        var pos = rowIdx * vertical_race_1.default.cols + colIdx;
         pixelEls[pos].style.backgroundColor = "rgb(".concat(pixel[0], ", ").concat(pixel[1], ", ").concat(pixel[2], ")");
       });
     });
   }
 
-  point_wave_1.default.useRenderer(renderToTable);
+  vertical_race_1.default.useRenderer(renderToTable);
 }
 
 document.addEventListener('DOMContentLoaded', tableMode);
-},{"../src/scenes/point-wave":"../src/scenes/point-wave.ts"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"../src/scenes/vertical-race":"../src/scenes/vertical-race.ts"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -1160,7 +1133,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "50907" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "63964" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

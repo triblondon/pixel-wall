@@ -11,7 +11,7 @@ const FADE_OUT_DURATION = 1000;
 
 const randomInt = (min: number, max: number) => min + Math.floor(Math.random() * (max - min + 1));
 
-const matrix = new Matrix({ rows: 25, cols: 60, frameRate: 20 });
+const matrix = new Matrix({ rows: 12, cols: 12, frameRate: 20 });
 const compositor = new Compositor({ bbox: { minX:0, minY:0, maxX:(matrix.cols-1), maxY:(matrix.rows-1) }});
 
 const doWave = () => {
