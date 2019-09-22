@@ -2,7 +2,7 @@ import Matrix from '../utils/matrix-display';
 import Compositor from '../utils/compositor';
 import Text from '../layers/text';
 
-const matrix = new Matrix({ rows: 12, cols: 12, frameRate: 30 });
+const matrix = new Matrix({ rows: 12, cols: 12, frameRate: 20 });
 const compositor = new Compositor({ bbox: { minX:0, minY:0, maxX:(matrix.cols-1), maxY:(matrix.rows-1) }});
 
 compositor.add(new Text({
@@ -10,7 +10,7 @@ compositor.add(new Text({
 	color: [152, 210, 255, 1],
 	speed: 1,
 	loop: true,
-	text: 'Hello world!'
+	text: 'hello chimp!'
 }));
 /*
 compositor.add(new Text({
