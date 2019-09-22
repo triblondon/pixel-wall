@@ -1,14 +1,19 @@
 import Layer, { LayerOptionsType } from './layer';
-import { FrameDataType } from '../utils/matrix-display'
+import { FrameDataType } from '../utils/matrix-display';
+
+type SizeType = { w: number, h: number };
+type SlideshowOptionsType = LayerOptionsType & { size: SizeType };
 
 export default class Slideshow extends Layer {
 
+	size: SizeType;
 	frames: FrameDataType[];
 	curFrame: number;
 	numFrames: number;
 
-	constructor(options: LayerOptionsType) {
-		super(options.position.x, options.position.y, options.size.w, options.size.h);
+	constructor(options: SlideshowOptionsType) {
+		super(options.position.x, options.position.y);
+		this.size = { w: options.size.w, h: options.size.h };
 		this.frames = [];
 		this.curFrame = 0;
 		this.numFrames = this.frames.length;

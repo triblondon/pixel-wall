@@ -1,4 +1,4 @@
-import scene from '../src/scenes/vertical-race';
+import scene from '../src/scenes/fire';
 import { FrameDataType } from '../src/utils/matrix-display';
 
 function canvasMode() {

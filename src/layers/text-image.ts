@@ -1,4 +1,4 @@
-import Layer, { LayerOptionsType } from './layer.js';
+/*import Layer, { LayerOptionsType } from './layer.js';
 import { PixelDataType, FrameDataType } from '../utils/matrix-display.js';
 import * as gm from 'gm';
 
@@ -45,3 +45,4 @@ class TextImage extends Layer {
 }
 
 module.exports = TextImage;
+*/
