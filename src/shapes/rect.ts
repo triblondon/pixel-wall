@@ -10,15 +10,20 @@ type OptionsType = {
 export default class Rect extends Shape {
 
 	private pixels: FrameDataType;
+	private width: number;
+	private height: number;
 
 	constructor(options: OptionsType) {
 		super();
-		options.color = options.color || [255, 255, 255, 1];
-
-		const row: RowDataType = Array(options.width).fill(undefined).map(() => options.color);
-		this.pixels = Array(options.height).fill(undefined).map(() => [...row]);
+		this.width = options.width || 1;
+		this.height = options.height || 1;
+		this.color = options.color || [255, 255, 255, 1];
 	}
 
+	set color(c: PixelDataType) {
+		const row: RowDataType = Array(this.width).fill(undefined).map(() => c);
+		this.pixels = Array(this.height).fill(undefined).map(() => [...row]);
+	}
 	get pixelData() { return this.pixels; }
 
 }

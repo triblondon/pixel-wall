@@ -3,20 +3,22 @@
   "private": true,
   "version": "0.0.1",
   "scripts": {
-    "build": "tsc -outDir lib"
+    "build": "tsc -outDir lib",
+    "dev": "parcel client/index.html"
   },
   "dependencies": {
     "argv": "0.0.2",
     "bezier-easing": "^2.1.0",
     "gm": "^1.23.1",
+    "openpixelcontrol-stream": "^0.1.2",
     "rpi-ws281x-native": "0.9.0"
   },
   "devDependencies": {
-    "@types/gm": "^1.18.3",
-    "@types/node": "^12.7.1",
-    "parcel-bundler": "^1.12.3",
-    "typescript": "^3.5.3",
-    "webpack": "^4.39.1",
-    "webpack-cli": "^3.3.6"
+    "@types/gm": "^1.18.7",
+    "@types/node": "^12.12.26",
+    "parcel-bundler": "^1.12.4",
+    "typescript": "^3.7.5",
+    "webpack": "^4.41.5",
+    "webpack-cli": "^3.3.10"
   }
 }

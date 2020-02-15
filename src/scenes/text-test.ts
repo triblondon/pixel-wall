@@ -10,8 +10,9 @@ compositor.add(new Text({
 	color: [152, 210, 255, 1],
 	speed: 1,
 	loop: true,
-	text: 'hello chimp!'
+	text: 'A celebration of Europe'
 }));
+
 /*
 compositor.add(new Text({
 	position: { x: matrix.cols, y: 10 },

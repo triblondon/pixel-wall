@@ -24,7 +24,6 @@ const addParticle = () => {
 }
 
 setInterval(addParticle, 2000);
-//addParticle();
 
 matrix.play(compositor.frame.bind(compositor));
 

@@ -1,4 +1,4 @@
-import scene from '../src/scenes/blobs';
+import scene from '../src/scenes/flames';
 import { FrameDataType } from '../src/utils/matrix-display';
 
 function canvasMode() {
