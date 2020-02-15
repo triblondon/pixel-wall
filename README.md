@@ -38,10 +38,32 @@ Hardware list
 Steps:
 
 1. Download [Raspbian lite](https://www.raspberrypi.org/downloads/raspbian/) (current version was Buster)
-2. Use [balena Etcher](https://www.balena.io/etcher/) to write it to the SD card
-3. Create the `wpa_supplicant.conf` and `ssh` files in the boot partition as instructed by the [headless setup instructions](https://www.raspberrypi.org/documentation/configuration/wireless/headless.md)
+2. Use [balena Etcher](https://www.balena.io/etcher/) to flash it to an SD card
+3. Create the `wpa_supplicant.conf` and `ssh` files in the boot partition as instructed by the [headless setup instructions](https://www.raspberrypi.org/documentation/configuration/wireless/headless.md) to allow the pi to connect to wifi when it boots
 4. Eject and remove the SD card from the laptop and plug it into the Pi.
-5.
+5. Connect a power supply and power-up the Pi.  Wait 1 minute.
+6. Use [IP Scanner](https://apps.apple.com/us/app/ip-scanner-home/id422293948) to locate the Pi on the network
+7. From a bash terminal on the laptop, connect to the Pi (password 'raspberry'):
+
+```bash
+ssh pi@192.168.1.118
+```
+
+8. Update the OS (this takes ages):
+
+```bash
+sudo apt update
+sudo apt full-upgrade
+```
+
+9. Install NodeJS and Git:
+
+```bash
+curl -sL https://deb.nodesource.com/setup_12.x | sudo bash -
+sudo apt install -y nodejs git
+```
+
+
 
 ## Troubleshooting:
 

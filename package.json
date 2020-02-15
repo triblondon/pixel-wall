@@ -10,8 +10,7 @@
     "argv": "0.0.2",
     "bezier-easing": "^2.1.0",
     "gm": "^1.23.1",
-    "openpixelcontrol-stream": "^0.1.2",
-    "rpi-ws281x-native": "0.9.0"
+    "openpixelcontrol-stream": "^0.1.2"
   },
   "devDependencies": {
     "@types/gm": "^1.18.7",
