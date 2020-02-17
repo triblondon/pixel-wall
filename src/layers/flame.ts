@@ -17,9 +17,9 @@ export const EASING_LINEAR = 'easeLinear';
 export const EASING_INCUBIC = 'easeInCubic';
 
 const MODES: ModeListType = [
-	{ name: 'normal', prob: [0, 0.7], hue: { target: 0.10, force: 0.0002, elas: 0.2, min: 0.09, max: 0.11 }, lum: { target: 0.45, max: 0.5, min: 0.4, force: 0.003, elas: 0.2 }},
-	{ name: 'throb', prob: [0.7, 0.95], hue: { target: 0.10, force: 0.0002, elas: 0.2, min: 0.09, max: 0.11 }, lum: { target: 0.45, max: 0.5, min: 0.4, force: 0.01, elas: 100 }},
-	{ name: 'flicker', prob: [0.95, 1], hue: { target: 0.10, force: 0.002, elas: 1, min: 0.08, max: 0.12 }, lum: { target: 0.35, max: 0.35, min: 0.2, force: 0.05, elas: 0.15 }}
+	{ name: 'normal', prob: [0, 0.7], hue: { target: 0.11, force: 0.0002, elas: 0.2, min: 0.10, max: 0.12 }, lum: { target: 0.45, max: 0.5, min: 0.4, force: 0.003, elas: 0.2 }},
+	{ name: 'throb', prob: [0.7, 0.95], hue: { target: 0.11, force: 0.0002, elas: 0.2, min: 0.09, max: 0.12 }, lum: { target: 0.45, max: 0.5, min: 0.4, force: 0.01, elas: 100 }},
+	{ name: 'flicker', prob: [0.95, 1], hue: { target: 0.10, force: 0.002, elas: 1, min: 0.09, max: 0.13 }, lum: { target: 0.35, max: 0.35, min: 0.2, force: 0.05, elas: 0.15 }}
 ]
 const PROPS: PropType[] = ['hue', 'lum'];
 
