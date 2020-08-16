@@ -13,9 +13,6 @@ type ModeType = {
 };
 type ModeListType = ModeType[];
 
-export const EASING_LINEAR = 'easeLinear';
-export const EASING_INCUBIC = 'easeInCubic';
-
 const MODES: ModeListType = [
 	{ name: 'normal', prob: [0, 0.7], hue: { target: 0.11, force: 0.0002, elas: 0.2, min: 0.10, max: 0.12 }, lum: { target: 0.45, max: 0.5, min: 0.4, force: 0.003, elas: 0.2 }},
 	{ name: 'throb', prob: [0.7, 0.95], hue: { target: 0.11, force: 0.0002, elas: 0.2, min: 0.09, max: 0.12 }, lum: { target: 0.45, max: 0.5, min: 0.4, force: 0.01, elas: 100 }},
