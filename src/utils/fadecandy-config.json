@@ -11,6 +11,7 @@
   "devices": [
       {
           "type": "fadecandy",
+          "serial": "XXSSXLWOWEIBPNOF",
           "map": [
               [ 0, 0, 0, 16 ]
           ]
