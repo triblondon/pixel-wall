@@ -9,7 +9,7 @@ const matrix = new Matrix({ rows: 1, cols: NUM_FLAMES, frameRate: 30 });
 
 const compositor = new Compositor({ bbox: { minX:0, minY:0, maxX:(matrix.cols-1), maxY:(matrix.rows-1) }});
 
-for (var x = 0; x < matrix.cols; x = x + 2) {
+for (var x = 0; x < matrix.cols; x = x + LEDS_PER_FLAME) {
 	compositor.add(new Flame({
 		position: { x, y: 0 },
 		width: LEDS_PER_FLAME
