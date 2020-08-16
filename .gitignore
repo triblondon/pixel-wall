@@ -1,4 +1,4 @@
 /node_modules
 /.cache
-/dist # Parcel output
+/dist
 nohup.out
