@@ -4,7 +4,8 @@
   "version": "0.0.1",
   "scripts": {
     "build": "tsc -outDir lib",
-    "dev": "parcel client/index.html"
+    "dev": "parcel client/index.html",
+    "start": "node lib/led-player.js -s flames"
   },
   "dependencies": {
     "argv": "0.0.2",
