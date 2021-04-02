@@ -2,7 +2,7 @@ import Matrix from '../utils/matrix-display';
 import Compositor from '../utils/compositor';
 import Flame from '../layers/flame';
 
-const NUM_FLAMES = 16;
+const NUM_FLAMES = 64;
 const LEDS_PER_FLAME = 1;
 
 const matrix = new Matrix({ rows: 1, cols: NUM_FLAMES, frameRate: 30 });
