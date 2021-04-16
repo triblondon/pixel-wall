@@ -1,19 +1,6 @@
 {
-	"compilerOptions": {
-		"target": "es2018",
-		"module": "commonjs",
-		"rootDir": "./src",
-		"outDir": "./lib",
-		"resolveJsonModule": true,
-		"esModuleInterop": true,
-		"noImplicitAny": true,
-		"typeRoots": [
-			"./node_modules/@types"
-		]
-	},
-	"exclude": [
-		"node_modules",
-		"client",
-		"images"
-	]
+	"extends": "@tsconfig/node14/tsconfig.json",
+
+	"include": ["src/**/*"],
+  "exclude": ["node_modules", "**/*.spec.ts"]
 }
