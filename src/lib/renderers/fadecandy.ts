@@ -37,9 +37,6 @@ export default class FadeCandyRenderer extends Renderer {
 				this.#pixelData[pixelIdx+2] = pixel[2];
 			})
 		})
-		if (Date.now() % 30 === 0) {
-			console.log(this.#pixelData);
-		}
 		this.#client.setPixelColors(OPC_CHANNEL, Buffer.from(this.#pixelData));
 	}
 }
