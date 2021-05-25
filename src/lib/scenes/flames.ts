@@ -42,6 +42,7 @@ export default class FlamesScene implements Scene {
 
 	setState(newState: string, options: ({ duration?: number, variance?: number}) = {}) {
 		if (this.#compositor) {
+			console.log('Setting scene mode', newState, options);
 			this.#compositor.layers.forEach(f => {
 				if (f instanceof Flame) {
 					const delay = Math.round(normalRandom(options.variance || 0) * (options.duration || 5000));
