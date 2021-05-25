@@ -2,5 +2,9 @@
 	"extends": "@tsconfig/node14/tsconfig.json",
 
 	"include": ["src/**/*"],
-  "exclude": ["node_modules", "**/*.spec.ts"]
+  "exclude": ["node_modules", "**/*.spec.ts"],
+
+	"compilerOptions": {
+		"resolveJsonModule": true
+	}
 }

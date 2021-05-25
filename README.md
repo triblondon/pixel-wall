@@ -67,7 +67,7 @@ For the bamboo project:
 9. Install NodeJS and Git:
 
 ```bash
-> curl -sL https://deb.nodesource.com/setup_12.x | sudo bash -
+> curl -sSL https://deb.nodesource.com/setup_16.x | sudo bash -
 > sudo apt install -y nodejs git
 ```
 
@@ -139,10 +139,11 @@ I soldered a right angle 16-pin IDC ribbon cable connector to the fadecandy conn
 Run the Flame simulation:
 
 ```
-> sudo node ~/pixel-wall/lib/led-player.js -s flames
+> cd ~/pixel-wall
+> npm start
 ```
 
-Hopefully the first six LEDs light up and flicker
+Hopefully the LEDs light up and flicker
 
 ### Install LEDs
 

@@ -1,6 +1,7 @@
-import Matrix, { PixelDataType } from '../matrix-display';
+import { PixelDataType, RowDataType } from '../matrix-display';
+import Scene from '../scene';
 
-const matrix = new Matrix({ cols: 12, rows: 12, frameRate: 30 });
+const SEQ_LEN = 300;
 
 // Get color for a position on the pride rainbow (fraction of 1)
 const rainbowColourForPos = (pos: number): PixelDataType => {
@@ -16,14 +17,33 @@ const rainbowColourForPos = (pos: number): PixelDataType => {
 	];
 	return color;
 }
+export default class Rainbow implements Scene {
 
-const frameCount = 300;
-let curFrame = 0;
-matrix.play(() => {
-	curFrame++;
-	if (curFrame > frameCount) curFrame = 1;
-	const offset = curFrame / frameCount;
-	matrix.setEach((x,y) => rainbowColourForPos(offset + ((x / matrix.rows)/2)));
-});
+	#cols: number;
+	#rows: number;
+	#curFrame: number;
 
-export default matrix;
+	constructor() {
+		this.#cols = 0;
+		this.#rows = 0;
+		this.#curFrame = 0;
+	}
+
+	init(rows: number, cols: number): void {
+		this.#cols = cols;
+		this.#rows = rows;
+	}
+
+	frame(timeOffset: number) {
+		this.#curFrame++;
+
+		if (this.#curFrame > SEQ_LEN) this.#curFrame = 1;
+		const offset = this.#curFrame / SEQ_LEN;
+
+		return Array(this.#rows).fill(0).map<RowDataType>(y => {
+			return Array(this.#cols).fill(0).map<PixelDataType>(x => {
+				return rainbowColourForPos(offset + ((x / this.#rows)/2));
+			});
+		});
+	}
+}

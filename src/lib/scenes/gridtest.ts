@@ -1,24 +1,38 @@
-import Matrix from '../matrix-display';
+import { PixelDataType, RowDataType } from '../matrix-display';
+import Scene from '../scene';
+export default class GridTest implements Scene {
 
-const matrix = new Matrix({ cols: 12, rows: 12, frameRate: 30 });
+	#cols: number;
+	#rows: number;
+	#curCol: number;
+	#curRow: number;
 
-matrix.setAll(50, 50, 50).render();
-
-var curRow = 0, curCol = 0;
-
-matrix.play(() => {
-	curCol++;
-	if (curCol == matrix.cols) {
-		curCol = 0;
-		curRow++;
+	constructor() {
+		this.#cols = 0;
+		this.#rows = 0;
+		this.#curCol = 0;
+		this.#curRow = 0;
 	}
-	if (curRow == matrix.rows) {
-		curCol = curRow = 0;
-	}
-  matrix.setEach((x, y) => {
-		const shade = (curCol === x && curRow === y) ? 255 : (curCol === x || curRow === y) ? 120 : 0;
-		return [shade, shade, shade, 1];
-	});
-});
 
-export default matrix;
+	init(rows: number, cols: number): void {
+		this.#cols = cols;
+		this.#rows = rows;
+	}
+
+	frame(timeOffset: number) {
+		this.#curCol++;
+		if (this.#curCol == this.#cols) {
+			this.#curCol = 0;
+			this.#curRow++;
+		}
+		if (this.#curRow == this.#rows) {
+			this.#curCol = this.#curRow = 0;
+		}
+		return Array(this.#rows).fill(0).map<RowDataType>(y => {
+			return Array(this.#cols).fill(0).map<PixelDataType>(x => {
+				const shade = (this.#curCol === x && this.#curRow === y) ? 255 : (this.#curCol === x || this.#curRow === y) ? 120 : 0;
+				return [shade, shade, shade, 1];
+			});
+		});
+	}
+}

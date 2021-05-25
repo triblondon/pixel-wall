@@ -1,13 +1,21 @@
-import Matrix from '../matrix-display';
+import Scene from '../scene';
 import Slideshow from '../layers/slideshow';
 
-import images from '../fire.json';
+import images from '../../utils/fire.json';
+export default class Fire implements Scene {
 
-const fire = new Slideshow({ size: { w: 12, h: 12 }, position: { x: 0, y: 0} });
-const matrix = new Matrix({ rows: 12, cols: 12, frameRate: 20 });
+  #slideshow: Slideshow;
 
-images.forEach(imageData => fire.addFrameFromRGBData(Buffer.from(imageData, 'base64')));
+	constructor() {
+    this.#slideshow = new Slideshow({ size: { w: 12, h: 12 }, position: { x: 0, y: 0} });
+    images.forEach(imageData => this.#slideshow.addFrameFromRGBData(Buffer.from(imageData, 'base64')));
+	}
 
-matrix.play(fire.frame.bind(fire));
+	init(rows: number, cols: number): void {
+    if (rows !== 12 && cols !== 12) throw new Error("Scene requires a 12x12 matrix");
+	}
 
-export default matrix;
+	frame() {
+		return this.#slideshow.frame()
+	}
+}

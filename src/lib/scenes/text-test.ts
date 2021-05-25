@@ -1,35 +1,34 @@
-import Matrix from '../matrix-display';
+
 import Compositor from '../compositor';
 import Text from '../layers/text';
+import Scene from '../scene';
 
-const matrix = new Matrix({ rows: 12, cols: 12, frameRate: 20 });
-const compositor = new Compositor({ bbox: { minX:0, minY:0, maxX:(matrix.cols-1), maxY:(matrix.rows-1) }});
+const randomInt = (min: number, max: number) => min + Math.floor(Math.random() * (max - min + 1));
+export default class TextTest implements Scene {
 
-compositor.add(new Text({
-	position: { x: matrix.cols, y: 2 },
-	color: [152, 210, 255, 1],
-	speed: 1,
-	loop: true,
-	text: 'A celebration of Europe'
-}));
+	#compositor: Compositor | undefined;
+	#cols: number;
+	#rows: number;
 
-/*
-compositor.add(new Text({
-	position: { x: matrix.cols, y: 10 },
-	color: [152, 255, 100, 1],
-	speed: 0.5,
-	loop: true,
-	text: 'THIS IS THE PROPOSED SIZE OF THE PRODUCTION MATRIX'
-}));
-compositor.add(new Text({
-	position: { x: matrix.cols, y: 18 },
-	color: [255, 100, 100, 1],
-	speed: 1,
-	loop: true,
-	text: 'WE CAN FIT THREE LINES OF TEXT'
-}));
-*/
+	constructor() {
+		this.#cols = 0;
+		this.#rows = 0;
+	}
 
-matrix.play(compositor.frame.bind(compositor));
+	init(rows: number, cols: number): void {
+		this.#cols = cols;
+		this.#rows = rows;
+		this.#compositor = new Compositor({ bbox: { minX:0, minY:0, maxX:(cols-1), maxY:(rows-1) }});
+		this.#compositor.add(new Text({
+			position: { x: this.#cols, y: 2 },
+			color: [152, 210, 255, 1],
+			speed: 1,
+			loop: true,
+			text: 'A celebration of Europe'
+		}));
+	}
 
-export default matrix;
+	frame(timeOffset: number) {
+		return this.#compositor?.frame(timeOffset) || [];
+	}
+}

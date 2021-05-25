@@ -1,17 +1,28 @@
-import Matrix from '../matrix-display';
+import { PixelDataType, RowDataType } from '../matrix-display';
+import Scene from '../scene';
+export default class Sparkle implements Scene {
 
-const matrix = new Matrix({ cols: 12, rows: 12, frameRate: 30 });
+	#cols: number;
+	#rows: number;
 
-matrix.setAll(30, 30, 30);
+	constructor() {
+		this.#cols = 0;
+		this.#rows = 0;
+	}
 
-var curRow = 0, curCol = 0;
+	init(rows: number, cols: number): void {
+		this.#cols = cols;
+		this.#rows = rows;
+	}
 
-matrix.play(() => {
-  const newRow = Math.floor(Math.random() * matrix.rows);
-  const newCol = Math.floor(Math.random() * matrix.cols);
-  matrix.setPixel(curCol, curRow, 30, 30, 30).setPixel(newCol,newRow, 255, 255, 255);
-  curCol = newCol;
-  curRow = newRow;
-});
+	frame(timeOffset: number) {
+    const newRow = Math.floor(Math.random() * this.#rows);
+    const newCol = Math.floor(Math.random() * this.#cols);
 
-export default matrix;
+		return Array(this.#rows).fill(0).map<RowDataType>(y => {
+			return Array(this.#cols).fill(0).map<PixelDataType>(x => {
+				return (newRow === y && newCol === x) ? [255, 255, 255, 1] : [30, 30, 30, 1];
+			});
+		});
+	}
+}

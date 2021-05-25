@@ -55,7 +55,7 @@ export default class Text extends Layer {
 	speed: number;
 	loop: boolean;
 
-	private textPixels: string[]
+	private textPixels: string[];
 	private dirty: boolean;
 	private origX: number;
 	private virtX: number;
@@ -65,7 +65,7 @@ export default class Text extends Layer {
 		this.color = options.color || [255,255,255,255];
 		this.speed = options.speed || 0;
 		this.loop = Boolean(options.loop);
-		this.textPixels = null;
+		this.textPixels = [];
 		this.dirty = false;
 		this.origX = this.position.x;
 		this.virtX = this.position.x;
@@ -92,7 +92,7 @@ export default class Text extends Layer {
 					this.virtX = this.origX;
 				} else {
 					this.active = false;
-					return;
+					return [];
 				}
 			}
 		}
@@ -106,7 +106,7 @@ export default class Text extends Layer {
 			;
 			return pixelData;
 		} else {
-			return null;
+			return [];
 		}
 	}
 }
