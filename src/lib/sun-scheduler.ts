@@ -42,7 +42,10 @@ export default ({ position, events }: Options) => {
       const moment = parseTriggerExpr(trigger, position);
       if (!isPast(moment)) {
         console.log('Scheduling job for ', moment);
-        Schedule.scheduleJob(moment, handler);
+        Schedule.scheduleJob(moment, () => {
+          console.log('Running job scheduled for ', moment);
+          handler();
+        });
       } else {
         console.log('Already past', moment);
       }
