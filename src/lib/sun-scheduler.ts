@@ -8,7 +8,7 @@ type Position = {
 }
 
 type Event = {
-  trigger: string;
+  trigger: string | Date;
   handler: () => unknown;
 }
 
@@ -23,11 +23,13 @@ const isSunTime = (s: string): s is SunTime => (SUN_TIMES as ReadonlyArray<strin
 
 let cronTask: Schedule.Job;
 
-const parseTriggerExpr = (str: string, position: Position) => {
-  if (isSunTime(str)) {
-    return SunCalc.getTimes(new Date(), position.lat, position.lng)[str];
-  } else if (/^\d\d:\d\d$/.test(str)) {
-    return parse(str, 'H:m', new Date());
+const parseTriggerExpr = (inp: string | Date, position: Position) => {
+  if (typeof inp === 'object' && inp instanceof Date) {
+    return inp;
+  } else if (isSunTime(inp)) {
+    return SunCalc.getTimes(new Date(), position.lat, position.lng)[inp];
+  } else if (/^\d\d:\d\d$/.test(inp)) {
+    return parse(inp, 'H:m', new Date());
   } else {
     throw new Error("Invalid trigger expression");
   }
