@@ -190,7 +190,7 @@ After=syslog.target network-online.target
 
 [Service]
 Type=simple
-ExecStart=node /home/pi/pixel-wall/lib/led-player.js -s flames
+ExecStart=cd /home/pi/pixel-wall && npm start
 Restart=on-failure
 RestartSec=10
 KillMode=process
