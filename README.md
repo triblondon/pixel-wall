@@ -167,7 +167,7 @@ After=syslog.target network-online.target
 
 [Service]
 Type=simple
-ExecStart=/home/pi/fadecandy/bin/fcserver-rpi /home/pi/pixel-wall/fadecandy-config.json
+ExecStart=/home/pi/fadecandy/bin/fcserver-rpi /home/pi/pixel-wall/config/fadecandy.json
 Restart=on-failure
 RestartSec=10
 KillMode=process
@@ -190,7 +190,8 @@ After=syslog.target network-online.target
 
 [Service]
 Type=simple
-ExecStart=cd /home/pi/pixel-wall && npm start
+WorkingDirectory=/home/pi/pixel-wall
+ExecStart=npm start
 Restart=on-failure
 RestartSec=10
 KillMode=process
