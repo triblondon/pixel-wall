@@ -200,6 +200,16 @@ KillMode=process
 WantedBy=multi-user.target
 ```
 
+Run:
+
+```
+> sudo systemctl daemon-reload
+> sudo systemctl enable fadecandy
+> sudo systemctl enable led-player
+> sudo systemctl start fadecandy
+> sudo systemctl start led-player
+```
+
 ### Mounting the LEDs
 
 TODO: solder wires onto LED strips, heatshrink on the strips, glue gun the strips into the bamboo.
