@@ -24,7 +24,7 @@ sunScheduler({
   position: { lat: GEO_LAT, lng: GEO_LNG },
   events: [
     { trigger: 'dusk', handler: () => scene.setState('on', { "duration": 30000, "variance": 1 }) },
-    { trigger: '01:00', handler: () => scene.setState('off', { "duration": 600000, "variance": 6 }) }
+    { trigger: '01:15', handler: () => scene.setState('off', { "duration": 600000, "variance": 6 }) }
   ]
 });
 matrix.play();
