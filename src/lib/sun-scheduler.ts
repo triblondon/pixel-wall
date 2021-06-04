@@ -1,6 +1,6 @@
 import SunCalc from 'suncalc';
 import Schedule from 'node-schedule';
-import { parse, isPast } from 'date-fns';
+import { parse, isPast, startOfTomorrow } from 'date-fns';
 
 type Position = {
   lat: number;
@@ -23,13 +23,13 @@ const isSunTime = (s: string): s is SunTime => (SUN_TIMES as ReadonlyArray<strin
 
 let cronTask: Schedule.Job;
 
-const parseTriggerExpr = (inp: string | Date, position: Position) => {
+const parseTriggerExpr = (refDate: Date, inp: string | Date, position: Position) => {
   if (typeof inp === 'object' && inp instanceof Date) {
     return inp;
   } else if (isSunTime(inp)) {
-    return SunCalc.getTimes(new Date(), position.lat, position.lng)[inp];
+    return SunCalc.getTimes(refDate, position.lat, position.lng)[inp];
   } else if (/^\d\d:\d\d$/.test(inp)) {
-    return parse(inp, 'H:m', new Date());
+    return parse(inp, 'H:m', refDate);
   } else {
     throw new Error("Invalid trigger expression");
   }
@@ -39,9 +39,10 @@ export default ({ position, events }: Options) => {
 
   if (cronTask) cronTask.cancel();
 
-  const scheduleEvents = () => {
+  const scheduleEvents = (isStartup: boolean) => {
+    const refDate = isStartup ? new Date() : startOfTomorrow();
     events.forEach(({ trigger, handler }) => {
-      const moment = parseTriggerExpr(trigger, position);
+      const moment = parseTriggerExpr(refDate, trigger, position);
       if (!isPast(moment)) {
         console.log('Scheduling job for ', moment);
         Schedule.scheduleJob(moment, () => {
@@ -49,15 +50,19 @@ export default ({ position, events }: Options) => {
           handler();
         });
       } else {
-        console.log('Already past', moment);
+        if (isStartup) console.log('Already past', moment);
       }
     });
   }
 
-  // Every day at midnight, schedule the tasks for today
-  cronTask = Schedule.scheduleJob('0 0 0 * *', scheduleEvents);
+  // Immediately schedule events covering the rest of today
+  scheduleEvents(true);
 
-  // And do it immediately on startup for the remainder of today
-  scheduleEvents();
+  // Every day just before midnight, schedule the tasks for the following day
+  cronTask = Schedule.scheduleJob('0 55 23 * * *', () => {
+    scheduleEvents(false);
+    console.log("Daily scheduling complete.  Next run at ", cronTask.nextInvocation());
+  });
+  console.log('Daily scheduling started.  First run at ', cronTask.nextInvocation());
 }
 
