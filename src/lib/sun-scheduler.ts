@@ -1,6 +1,6 @@
 import SunCalc from 'suncalc';
 import Schedule from 'node-schedule';
-import { parse, isPast, startOfTomorrow } from 'date-fns';
+import { parse, isPast, endOfTomorrow } from 'date-fns';
 
 type Position = {
   lat: number;
@@ -40,7 +40,8 @@ export default ({ position, events }: Options) => {
   if (cronTask) cronTask.cancel();
 
   const scheduleEvents = (isStartup: boolean) => {
-    const refDate = isStartup ? new Date() : startOfTomorrow();
+    const refDate = isStartup ? new Date() : endOfTomorrow();
+    console.log('Performing scheduling with reference date', refDate);
     events.forEach(({ trigger, handler }) => {
       const moment = parseTriggerExpr(refDate, trigger, position);
       if (!isPast(moment)) {
@@ -56,13 +57,14 @@ export default ({ position, events }: Options) => {
   }
 
   // Immediately schedule events covering the rest of today
+  console.log('Performing startup scheduling');
   scheduleEvents(true);
 
   // Every day just before midnight, schedule the tasks for the following day
   cronTask = Schedule.scheduleJob('0 55 23 * * *', () => {
+    console.log('Performing daily scheduling');
     scheduleEvents(false);
-    console.log("Daily scheduling complete.  Next run at ", cronTask.nextInvocation());
+    console.log("Daily scheduling complete.");
   });
-  console.log('Daily scheduling started.  First run at ', cronTask.nextInvocation());
 }
 

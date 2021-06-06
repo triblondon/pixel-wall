@@ -170,7 +170,6 @@ Type=simple
 ExecStart=/home/pi/fadecandy/bin/fcserver-rpi /home/pi/pixel-wall/config/fadecandy.json
 Restart=on-failure
 RestartSec=10
-KillMode=process
 
 [Install]
 WantedBy=multi-user.target
@@ -194,7 +193,6 @@ WorkingDirectory=/home/pi/pixel-wall
 ExecStart=npm start
 Restart=on-failure
 RestartSec=10
-KillMode=process
 
 [Install]
 WantedBy=multi-user.target
