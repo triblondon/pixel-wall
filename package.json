@@ -12,7 +12,7 @@
     "@types/suncalc": "^1.8.0",
     "bezier-easing": "^2.1.0",
     "date-fns": "^2.20.0",
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "gm": "^1.23.1",
     "node-schedule": "^2.0.0",
     "openpixelcontrol-stream": "^0.1.2",
