@@ -90,7 +90,7 @@ For the bamboo project:
 
 ```
 > cd ~/pixel-wall
-> nano facecandy-config.json
+> nano fadecandy-config.json
 ```
 ```
 {
@@ -140,7 +140,7 @@ Run the Flame simulation:
 
 ```
 > cd ~/pixel-wall
-> npm start
+> npm run dev
 ```
 
 Hopefully the LEDs light up and flicker
